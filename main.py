@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from models.Recipe import Recipe
-from routes import shopping_list, household
+from routes import shopping_list, household, feed, user
 
 app = FastAPI()
 
@@ -12,15 +12,5 @@ async def provide_household_id(request: Request, call_next):
 
 app.include_router(shopping_list.router)
 app.include_router(household.router)
-
-# @app.get('/')
-# def read_root():
-#     return {"hello": "world"}
-
-# @app.get('/items/{item_id}')
-# def read_item(item_id: int, q: str | None = None):
-#     return {"item_id": item_id, "q": q}
-
-# @app.put("/items/{item_id}")
-# def update_item(item_id: int, item : Recipe):
-#     return {"item_name": item.title, "item_id": item_id}
+app.include_router(feed.router)
+app.include_router(user.router)

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request
-from models.Household import ShoppingItem
 from controllers.householdController import HouseholdController
 
 router = APIRouter(
@@ -7,13 +6,24 @@ router = APIRouter(
     tags= ["Household"]
 )
 
-@router.post("/create/{user_id}")
+@router.post("/create/household/{user_id}")
 async def create_household(user_id: str):
     # Create a new household
     if HouseholdController.find_household(user_id) is not None:
         return {"message": "User already in a household"}
     household_id = HouseholdController.create_household(user_id)
     return {"message": "Household created successfully", "household_id": household_id}
+
+
+@router.get("/get")
+async def get_household(request: Request):
+    # Get the household ID from the request
+    household_id = request.state.household_id
+
+    if household_id is None:
+        return {"message": "No household found"}
+    household = HouseholdController.get_household(household_id)
+    return {"household": household}
 
 @router.get("/get/{user_id}")
 async def get_household_id(user_id: str):

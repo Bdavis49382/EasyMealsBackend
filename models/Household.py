@@ -6,6 +6,7 @@ class User(BaseModel):
     full_name: str
     user_name: str
     google_id: str
+    recipes: list[Recipe] = []
 
 class JoinCode(BaseModel):
     code: str
