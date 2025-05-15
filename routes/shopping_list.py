@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from models.Household import ShoppingItem
-from controllers.shopping_list import ShoppingListController
+from controllers.shoppingListController import ShoppingListController
 
 router = APIRouter(
     prefix="/shopping-list",

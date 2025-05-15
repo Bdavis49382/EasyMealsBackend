@@ -24,7 +24,7 @@ class ShoppingItem(BaseModel):
     recipe_id: str = None
 
 class Household(BaseModel):
-    users: list[User] = []
+    users: list[str] = []
     join_code: JoinCode = None
     menu_recipes: list[MenuItem] = []
     shopping_list: list[ShoppingItem] = []
