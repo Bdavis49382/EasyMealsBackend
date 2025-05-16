@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Request
 from models.Recipe import Recipe
 from controllers.feedController import FeedController
@@ -16,4 +15,14 @@ async def add_recipe(user_id: str, recipe: Recipe):
 @router.get("/get")
 async def get_feed(request: Request):
     user_recipes = FeedController.get_user_recipes(request.state.household_id)
-    return {"user_recipes": user_recipes}
+    all_recipes = FeedController.get_suggested_recipes()
+    sorted_recipes = FeedController.sort_recipes(request.state.household_id, [*user_recipes, *all_recipes])
+    return {"feed": sorted_recipes}
+
+@router.get('/search/{query}')
+async def search_feed(query: str, request: Request):
+    user_recipes = FeedController.get_user_recipes(request.state.household_id, keyword=query)
+    all_recipes = FeedController.search_all_recipes(query)
+    sorted_recipes = FeedController.sort_recipes(request.state.household_id, [*user_recipes,*all_recipes])
+    # Implement search logic here
+    return {'sorted_recipes': sorted_recipes}

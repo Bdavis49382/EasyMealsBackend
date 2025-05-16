@@ -20,12 +20,12 @@ class ShoppingItem(BaseModel):
     amount: str
     name: str
     checked: bool = False
-    time_checked: datetime = None
-    user_id: str = None
-    recipe_id: str = None
+    time_checked: datetime | None = None
+    user_id: str | None = None
+    recipe_id: str | None = None
 
 class Household(BaseModel):
     users: list[str] = []
-    join_code: JoinCode = None
+    join_code: JoinCode | None = None
     menu_recipes: list[MenuItem] = []
     shopping_list: list[ShoppingItem] = []

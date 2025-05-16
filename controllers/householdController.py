@@ -5,10 +5,12 @@ from models.Household import Household
 import string, random
 
 class HouseholdController:
+    @staticmethod
     def get_household(household_id: str):
         ref = db.collection('households').document(household_id)
         return ref.get().to_dict()
-    
+
+    @staticmethod
     def find_household(user_id: str):
         # Find the household that the user is in
         households = db.collection('households').where('users', 'array_contains', user_id).get()
@@ -16,14 +18,16 @@ class HouseholdController:
             return None
         else:
             return households[0].id
-        
+
+    @staticmethod
     def create_household(user_id: str):
         # Create a new household
         household = Household()
         household.users.append(user_id)
         household_ref = db.collection('households').add( household.model_dump())
         return household_ref[1].id
-    
+
+    @staticmethod
     def get_household_code(household_id: str):
         # Get the household code
         household = db.collection('households').document(household_id).get().to_dict()
@@ -48,6 +52,7 @@ class HouseholdController:
             })
         return code
 
+    @staticmethod
     def join_household(household_id: str, user_id: str, code: str):
         household = HouseholdController.get_household(household_id)
         if household is None:
@@ -69,6 +74,7 @@ class HouseholdController:
         })
         return household_id
     
+    @staticmethod
     def kick_user(household_id: str, user_id: str):
         # Remove a user from a household
         db.collection('households').document(household_id).update({
