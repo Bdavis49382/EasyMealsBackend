@@ -20,7 +20,19 @@ class MenuController:
 
     @staticmethod
     def get_menu(household_id: str) -> list:
-        return HouseholdController.get_household(household_id)['menu_recipes']
+        menu = HouseholdController.get_household(household_id)['menu_recipes']
+        for menu_item in menu:
+            recipe = MenuController.get_recipe(household_id, menu_item['recipe_id'])
+            menu_item['img_link'] = recipe['img_link']
+            menu_item['title'] = recipe['title']
+        return menu
+    
+    @staticmethod
+    def get_menu_item(household_id: str, index: int):
+        menu = HouseholdController.get_household(household_id)['menu_recipes']
+        assert index < len(menu), "Invalid index for menu item"
+        menu[index]['recipe'] = MenuController.get_recipe(household_id, menu[index]['recipe_id'])
+        return menu[index]
     
     @staticmethod
     def get_recipe(household_id: str, recipe_id: str):

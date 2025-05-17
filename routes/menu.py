@@ -28,6 +28,13 @@ async def get_recipe(request: Request, recipe_id: str):
     res = MenuController.get_recipe(request.state.household_id, recipe_id)
     return {"recipe_details": res}
 
+@router.get("/get/recipe/{index}")
+async def get_recipe_by_index(request: Request, index: str):
+    res = MenuController.get_menu_item(request.state.household_id, int(index))
+    if res is None:
+        return {"message": "failed to retrieve by that index"}
+    return {"recipe_details": res}
+
 @router.get('/get/recipe-online')
 async def get_recipe_online(link:str):
     res = MenuController.get_recipe_online(link)

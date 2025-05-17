@@ -2,11 +2,20 @@ from firebase import db
 from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import ArrayUnion
 from models.Household import ShoppingItem
+from controllers.userController import UserController
+from controllers.menuController import MenuController
 
 class ShoppingListController:
     def get_shopping_list(household_id: str):
         ref = db.collection('households').document(household_id)
-        return ref.get().to_dict()["shopping_list"]
+        shopping_list = ref.get().to_dict()["shopping_list"]
+        for item in shopping_list:
+            user = UserController.get_user(item['user_id'])
+            item['user_initial'] = user['full_name'][0]
+            del item['time_checked']
+            recipe = MenuController.get_recipe(household_id, item['recipe_id'])
+            item['recipe_title'] = recipe['title']
+        return shopping_list
 
     def clean_list(household_id: str):
         ref = db.collection('households').document(household_id)
