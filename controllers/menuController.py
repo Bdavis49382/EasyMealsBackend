@@ -1,19 +1,47 @@
 from firebase import db
 from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
-from models.Recipe import Recipe
+from models.Household import MenuItem
+from models.Record import Record
 from controllers.householdController import HouseholdController
+from controllers.feedController import FeedController
+from controllers.userController import UserController
+from uuid import uuid4
 
 class MenuController:
     @staticmethod
-    def add_recipe(user_id: str, recipe: Recipe):
-        # Add a recipe to the user's menu
-        pass
+    def add_recipe(household_id, menu_item: MenuItem):
+        return db.collection('households').document(household_id).update({
+            "menu_recipes": ArrayUnion([menu_item.model_dump()])
+        })
+
 
     @staticmethod
-    def get_menu(household_id: str):
-        pass
+    def get_menu(household_id: str) -> list:
+        return HouseholdController.get_household(household_id)['menu_recipes']
     
     @staticmethod
-    def finish_recipe(household_id: str, recipe_id: str):
-        pass
+    def get_recipe(household_id: str, recipe_id: str):
+        household = HouseholdController.get_household(household_id)
+        for user_id in household['users']:
+            user = UserController.get_user(user_id)
+                
+            if user is not None and recipe_id in user['recipes']:
+                return user['recipes'][recipe_id]
+    
+    @staticmethod
+    def finish_recipe(household_id: str, recipe_id: str, user_id : str, rating: int | None = None):
+        menu = MenuController.get_menu(household_id)
+
+        # remove from menu
+        menu = [x for x in menu if x['recipe_id'] != recipe_id]
+        db.collection('households').document(household_id).update({
+            "menu_recipes" : menu
+        })
+
+        #add a record for this interaction
+        record = Record(household_id=household_id,timestamp=datetime.now(timezone.utc), rating = rating)
+
+        return db.collection('users').document(user_id).update({
+            f"recipes.{recipe_id}.history" : ArrayUnion([record.model_dump()])
+        })

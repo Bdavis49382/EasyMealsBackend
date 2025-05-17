@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from models.Recipe import Recipe
-from routes import shopping_list, household, feed, user
+from routes import shopping_list, household, feed, user, menu
 
 app = FastAPI()
 
@@ -14,3 +14,4 @@ app.include_router(shopping_list.router)
 app.include_router(household.router)
 app.include_router(feed.router)
 app.include_router(user.router)
+app.include_router(menu.router)

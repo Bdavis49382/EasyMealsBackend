@@ -6,15 +6,16 @@ class User(BaseModel):
     full_name: str
     user_name: str
     google_id: str
-    recipes: list[Recipe] = []
+    recipes: dict[str,Recipe] = {}
 
 class JoinCode(BaseModel):
     code: str
     expiration_date: datetime
 
-class MenuItem(Recipe):
-    note: str
-    date: datetime
+class MenuItem(BaseModel):
+    note: str = ''
+    date: datetime | None = None
+    recipe_id: str
 
 class ShoppingItem(BaseModel):
     amount: str

@@ -4,7 +4,7 @@ from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
 from models.Recipe import Recipe
 from controllers.householdController import HouseholdController
 from controllers.allRecipes import AllRecipes
-import string, random
+from uuid import uuid4
 
 class FeedController:
     @staticmethod
@@ -14,10 +14,11 @@ class FeedController:
         recipe_dict['author_id'] = user_id
         if recipe_dict['src_name'] is None:
             recipe_dict['src_name'] = "" # perhaps automatically add user's name
+        recipe_id = uuid4().__str__()
         db.collection('users').document(user_id).update({
-            "recipes": ArrayUnion([recipe_dict])
+            f"recipes.{recipe_id}": recipe_dict
         })
-        return recipe_dict
+        return recipe_id
 
     @staticmethod
     def get_user_recipes(household_id: str, keyword: str | None = None):
