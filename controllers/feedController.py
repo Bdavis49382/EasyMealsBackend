@@ -27,7 +27,8 @@ class FeedController:
         for user_id in users:
             user_data = db.collection('users').document(user_id).get().to_dict()
             if user_data is not None and 'recipes' in user_data:
-                for recipe in user_data['recipes']:
+                for id, recipe in user_data['recipes'].items():
+                    recipe['id'] = id
                     if keyword is None:
                         recipes.append(recipe)
                     elif keyword in recipe['title']:

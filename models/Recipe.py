@@ -12,8 +12,9 @@ class Recipe(BaseModel):
     time_estimate: list[str]
     src_link: str = ""
     src_name: str | None = None
-    ingredients: list[Ingredient]
+    ingredients: list[str]
     history: list[Record] = []
+
 
 # example
 # {

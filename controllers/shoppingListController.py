@@ -31,6 +31,12 @@ class ShoppingListController:
             "shopping_list": ArrayUnion([shopping_item.model_dump()])
         })
         return ref.get().to_dict()["shopping_list"]
+    
+    def add_items(household_id, shopping_items: list[ShoppingItem]):
+        ref = db.collection('households').document(household_id)
+        shopping_list = ref.get().to_dict()['shopping_list']
+        shopping_list.extend(x.model_dump() for x in shopping_items)
+        ref.update({"shopping_list": shopping_list})
 
     def check_item(household_id : str, index: int):
         ref = db.collection('households').document(household_id)
@@ -72,3 +78,6 @@ class ShoppingListController:
             "shopping_list": shopping_list
         })
         return shopping_list
+
+    def wrap_items(item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
+        return [ShoppingItem(name=x, user_id=user_id, recipe_id=recipe_id) for x in item_strings]

@@ -97,6 +97,11 @@ class AllRecipes(object):
         for i in res:
             data[i[0].text] = i[1].text
         return data[text]
+    
+    @staticmethod
+    def _get_image_data(soup):
+        return soup.find("div",{"id":"article-content_1-0"}).find("img", {"class": "mntl-image"}).get("data-hi-res-src","")
+
 
     @classmethod
     def _get_prep_time(cls, soup):
@@ -113,6 +118,10 @@ class AllRecipes(object):
     @classmethod
     def _get_nb_servings(cls, soup):
         return cls._get_times_data(soup, "Servings:")
+    
+    @classmethod
+    def _get_image(cls, soup):
+        return cls._get_image_data(soup)
 
     @classmethod
     def get(cls, url):
@@ -142,9 +151,10 @@ class AllRecipes(object):
             {"name": "cook_time", "default_value": ""},
             {"name": "total_time", "default_value": ""},
             {"name": "nb_servings", "default_value": ""},
+            {"name": "image", "default_value": ""},
         ]
 
-        data = {"url": url}
+        data = {"src_link": url}
         for element in elements:
             try:
                 data[element["name"]] = getattr(cls, "_get_" + element["name"])(soup)

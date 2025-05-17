@@ -17,13 +17,16 @@ class MenuItem(BaseModel):
     date: datetime | None = None
     recipe_id: str
 
+
 class ShoppingItem(BaseModel):
-    amount: str
     name: str
     checked: bool = False
     time_checked: datetime | None = None
     user_id: str | None = None
     recipe_id: str | None = None
+
+class ActiveItems(BaseModel):
+    items: list[str] = []
 
 class Household(BaseModel):
     users: list[str] = []
