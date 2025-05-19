@@ -14,7 +14,10 @@ class ShoppingListController:
             item['user_initial'] = user['full_name'][0]
             del item['time_checked']
             recipe = MenuController.get_recipe(household_id, item['recipe_id'])
-            item['recipe_title'] = recipe['title']
+            if recipe is not None:
+                item['recipe_title'] = recipe['title']
+            else:
+                item['recipe_title'] = ''
         return shopping_list
 
     def clean_list(household_id: str):
