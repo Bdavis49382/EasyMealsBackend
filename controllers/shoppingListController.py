@@ -9,10 +9,12 @@ class ShoppingListController:
     def get_shopping_list(household_id: str):
         ref = db.collection('households').document(household_id)
         shopping_list = ref.get().to_dict()["shopping_list"]
+        return ShoppingListController.convertList(household_id, shopping_list)
+    
+    def convertList(household_id: str,shopping_list: list[dict]):
         for item in shopping_list:
             user = UserController.get_user(item['user_id'])
             item['user_initial'] = user['full_name'][0]
-            del item['time_checked']
             recipe = MenuController.get_recipe(household_id, item['recipe_id'])
             if recipe is not None:
                 item['recipe_title'] = recipe['title']
@@ -42,7 +44,7 @@ class ShoppingListController:
         res = ref.update({
             "shopping_list": ArrayUnion([shopping_item.model_dump()])
         })
-        return ref.get().to_dict()["shopping_list"]
+        return ShoppingListController.convertList(household_id,ref.get().to_dict()["shopping_list"])
     
     def add_items(household_id, shopping_items: list[ShoppingItem]):
         ref = db.collection('households').document(household_id)
@@ -65,7 +67,7 @@ class ShoppingListController:
         ref.update({
             "shopping_list": shopping_list
         })
-        return shopping_list
+        return ShoppingListController.convertList(household_id,shopping_list)
 
     def edit_item(household_id: str, index: int, shopping_item: ShoppingItem):
         ref = db.collection('households').document(household_id)
@@ -77,7 +79,7 @@ class ShoppingListController:
         ref.update({
             "shopping_list": shopping_list
         })
-        return shopping_list
+        return ShoppingListController.convertList(household_id, shopping_list)
 
     def remove_item(household_id: str, index: int):
         ref = db.collection('households').document(household_id)
@@ -89,7 +91,7 @@ class ShoppingListController:
         ref.update({
             "shopping_list": shopping_list
         })
-        return shopping_list
+        return ShoppingListController.convertList(household_id, shopping_list)
 
     def wrap_items(item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
         return [ShoppingItem(name=x, user_id=user_id, recipe_id=recipe_id) for x in item_strings]
