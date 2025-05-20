@@ -23,7 +23,7 @@ class AllRecipes(object):
         search_data = []
         articles = soup.findAll("a", {"class": card_class})
 
-        articles = [a for a in articles if "-recipe-" in a["href"]]
+        articles = [a for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
         for article in articles:
             data = {}

@@ -31,9 +31,8 @@ class FeedController:
                     recipe['id'] = id
                     if keyword is None:
                         recipes.append(recipe)
-                    elif keyword in recipe['title']:
+                    elif keyword.upper() in recipe['title'].upper():
                         recipes.append(recipe)
-
         return recipes
     
     @staticmethod
@@ -44,6 +43,12 @@ class FeedController:
     def get_suggested_recipes():
         return AllRecipes.get_main_dishes()
     
+    @staticmethod
+    def remove_duplicates(user_recipes: list[dict],other_recipes: list[dict]):
+        user_titles = set(x['title'] for x in user_recipes)
+        user_recipes.extend([x for x in other_recipes if x['title'] not in user_titles])
+        return user_recipes
+
     @staticmethod
     def sort_recipes(household_id : str,recipes: list):
         for recipe in recipes:
