@@ -8,8 +8,8 @@ class Recipe(BaseModel):
     instructions: list[str]
     img_link: str
     author_id: str | None = None
-    servings: float
-    time_estimate: list[str]
+    servings: float | None = None
+    time_estimate: list[str] = []
     src_link: str = ""
     src_name: str | None = None
     ingredients: list[str]
