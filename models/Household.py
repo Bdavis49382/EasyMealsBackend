@@ -15,7 +15,11 @@ class JoinCode(BaseModel):
 class MenuItem(BaseModel):
     note: str = ''
     date: datetime | None = None
-    recipe_id: str
+    active_items: list[str]
+    # Should have either recipe_id or recipe
+    recipe_id: str | None = None
+    recipe: Recipe | None = None
+
 
 
 class ShoppingItem(BaseModel):
