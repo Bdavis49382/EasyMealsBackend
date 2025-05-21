@@ -41,6 +41,7 @@ class MenuController:
             user = UserController.get_user(user_id)
                 
             if user is not None and recipe_id in user['recipes']:
+                user['recipes'][recipe_id]['id'] = recipe_id
                 return user['recipes'][recipe_id]
     
     @staticmethod
