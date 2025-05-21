@@ -9,7 +9,7 @@ class Recipe(BaseModel):
     img_link: str
     author_id: str | None = None
     servings: float | None = None
-    time_estimate: list[str] = []
+    time_estimate: list[str] = [] #total time, prep time, cook time
     src_link: str = ""
     src_name: str | None = None
     ingredients: list[str]
