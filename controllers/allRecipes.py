@@ -150,7 +150,7 @@ class AllRecipes(object):
             {"name": "prep_time", "default_value": ""},
             {"name": "cook_time", "default_value": ""},
             {"name": "total_time", "default_value": ""},
-            {"name": "nb_servings", "default_value": ""},
+            {"name": "nb_servings", "default_value": None},
             {"name": "image", "default_value": ""},
         ]
 
