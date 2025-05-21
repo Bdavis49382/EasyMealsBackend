@@ -18,4 +18,4 @@ app.include_router(menu.router)
 
 @app.exception_handler(Exception)
 def global_handler(request: Request, exc: Exception):
-    return HTTPException(status_code=500,detail=str(exc))
+    raise HTTPException(status_code=500,detail=str(exc))
