@@ -62,6 +62,7 @@ class MenuController:
         #add a record for this interaction
         record = Record(household_id=household_id,timestamp=datetime.now(timezone.utc), rating = rating)
 
-        return db.collection('users').document(user_id).update({
+        res = db.collection('users').document(user_id).update({
             f"recipes.{recipe_id}.history" : ArrayUnion([record.model_dump()])
         })
+        return MenuController.get_menu()

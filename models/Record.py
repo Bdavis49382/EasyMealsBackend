@@ -5,4 +5,4 @@ from datetime import datetime
 class Record(BaseModel):
     household_id: str
     timestamp: datetime
-    rating: int | None = None
+    rating: float | None = None

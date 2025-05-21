@@ -54,4 +54,4 @@ async def finish_meal(request: Request, recipe_id: str, user_id: str, rating: fl
     response = MenuController.finish_recipe(request.state.household_id, recipe_id, user_id, rating)
     if response is None:
         return {"message": "failed"}
-    return {"message":"sucessfully removed from menu"}
+    return response
