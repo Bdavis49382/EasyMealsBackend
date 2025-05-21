@@ -65,4 +65,4 @@ class MenuController:
         res = db.collection('users').document(user_id).update({
             f"recipes.{recipe_id}.history" : ArrayUnion([record.model_dump()])
         })
-        return MenuController.get_menu()
+        return MenuController.get_menu(household_id)
