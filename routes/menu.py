@@ -50,7 +50,7 @@ async def get_recipe_online(link:str):
 
 
 @router.post('/finish')
-async def finish_meal(request: Request, recipe_id: str, user_id: str, rating: int | None = None):
+async def finish_meal(request: Request, recipe_id: str, user_id: str, rating: float | None = None):
     response = MenuController.finish_recipe(request.state.household_id, recipe_id, user_id, rating)
     if response is None:
         return {"message": "failed"}
