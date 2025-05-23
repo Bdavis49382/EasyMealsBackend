@@ -23,8 +23,9 @@ class MenuController:
         menu = HouseholdController.get_household(household_id)['menu_recipes']
         for menu_item in menu:
             recipe = MenuController.get_recipe(household_id, menu_item['recipe_id'])
-            menu_item['img_link'] = recipe['img_link']
-            menu_item['title'] = recipe['title']
+            if recipe is not None:
+                menu_item['img_link'] = recipe['img_link']
+                menu_item['title'] = recipe['title']
         return menu
     
     @staticmethod
