@@ -16,13 +16,14 @@ class UserController:
         return user
 
     @staticmethod
-    def get_users():
+    def get_users(ids: list[str] = []):
         # Get all users
         users = db.collection('users').get()
         user_list = []
         for user_data in users:
             user = user_data.to_dict()
-            if user is None:
+            # if a user wasn't found, or is not one we are looking for, move on.
+            if user is None or (user_data.id not in ids and len(ids) != 0):
                 continue
 
             if 'recipes' in user:

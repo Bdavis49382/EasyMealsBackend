@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from controllers.householdController import HouseholdController
+from controllers.userController import UserController
 
 router = APIRouter(
     prefix="/household",
@@ -23,7 +24,8 @@ async def get_household(request: Request):
     if household_id is None:
         return {"message": "No household found"}
     household = HouseholdController.get_household(household_id)
-    return {"household": household}
+    users = UserController.get_users(household['users'])
+    return users
 
 @router.get("/get/{user_id}")
 async def get_household_id(user_id: str):
