@@ -1,6 +1,6 @@
 from firebase import db
 from datetime import datetime, timezone, timedelta
-from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
+from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove, FieldFilter
 from models.Household import Household
 import string, random
 
@@ -53,13 +53,28 @@ class HouseholdController:
         return code
 
     @staticmethod
-    def join_household(household_id: str, user_id: str, code: str):
-        household = HouseholdController.get_household(household_id)
+    def find_household_by_code(code: str):
+        ref = db.collection('households').where(filter=FieldFilter("join_code","!=",None)).where(filter=FieldFilter("join_code.code","==",code))
+        households = []
+        for h in ref.get():
+            h_dict = h.to_dict()
+            h_dict['id'] = h.id
+            households.append(h_dict)
+        if len(households) == 1:
+            return households[0]
+        
+        return None
+
+    @staticmethod
+    def join_household(user_id: str, code: str):
+        household = HouseholdController.find_household_by_code(code)
         if household is None:
             return None
         if household['join_code'] is None or household['join_code']['code'] != code:
             return None
-
+        if household['join_code']['expiration_date'] < datetime.now(timezone.utc):
+            return None
+        household_id = household['id']
         # Check if the user is already in a household
         old_household_id = HouseholdController.find_household(user_id)
         if old_household_id is not None:
