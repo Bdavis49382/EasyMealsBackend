@@ -39,7 +39,7 @@ async def get_household_id(user_id: str):
 @router.get("/code")
 async def get_household_code(request: Request):
     code = HouseholdController.get_household_code(request.state.household_id)
-    return {"code": code}
+    return code['code']
 
 @router.get("/join/{household_id}/{user_id}/{code}")
 async def join_household(household_id: str, user_id: str, code: str):
