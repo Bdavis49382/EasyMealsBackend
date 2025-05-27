@@ -41,7 +41,7 @@ class MenuController:
     def get_recipe(household_id: str, recipe_id: str):
         household = HouseholdController.get_household(household_id)
         for user_id in [household['owner_id'],*household['users']]:
-            user = UserController.get_user(user_id)
+            user = db.collection('users').document(user_id).get().to_dict()
                 
             if user is not None and recipe_id is not None and recipe_id in user['recipes']:
                 user['recipes'][recipe_id]['id'] = recipe_id
