@@ -24,7 +24,8 @@ async def get_household(request: Request):
     if household_id is None:
         return {"message": "No household found"}
     household = HouseholdController.get_household(household_id)
-    users = UserController.get_users(household['users'])
+    users = [UserController.get_user(household['owner_id'])]
+    users.extend(UserController.get_users(household['users']))
     return users
 
 @router.get("/get/{user_id}")
@@ -43,14 +44,14 @@ async def get_household_code(request: Request):
 
 @router.get("/join/{user_id}/{code}")
 async def join_household(user_id: str, code: str):
-    result = HouseholdController.join_household(user_id, code)
-    if result is None:
+    new_users = HouseholdController.join_household(user_id, code)
+    if new_users is None:
         return {"message": "Invalid household ID or code"}
-    return {"household_id": result}
+    return new_users
 
 @router.delete("/kick/{user_id}")
 async def kick_user(request: Request, user_id: str):
-    result = HouseholdController.kick_user(request.state.household_id, user_id)
-    if result is None:
-        return {"message": "household removed"}
-    return {"householdId": result}
+    new_users = HouseholdController.kick_user(request.state.household_id, user_id)
+    if new_users is None:
+        return {"message": "household removed or user not found"}
+    return new_users

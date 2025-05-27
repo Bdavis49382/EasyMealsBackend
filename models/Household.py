@@ -34,6 +34,7 @@ class ActiveItems(BaseModel):
 
 class Household(BaseModel):
     users: list[str] = []
+    owner_id: str
     join_code: JoinCode | None = None
     menu_recipes: list[MenuItem] = []
     shopping_list: list[ShoppingItem] = []

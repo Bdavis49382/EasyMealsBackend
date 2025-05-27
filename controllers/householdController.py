@@ -1,7 +1,8 @@
 from firebase import db
 from datetime import datetime, timezone, timedelta
-from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove, FieldFilter
+from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove, FieldFilter, Or
 from models.Household import Household
+from controllers.userController import UserController
 import string, random
 
 class HouseholdController:
@@ -13,7 +14,10 @@ class HouseholdController:
     @staticmethod
     def find_household(user_id: str):
         # Find the household that the user is in
-        households = db.collection('households').where('users', 'array_contains', user_id).get()
+        households = db.collection('households').where(filter=Or([
+            FieldFilter('users', 'array_contains', user_id),
+            FieldFilter('owner_id','==', user_id)
+        ])).get()
         if len(households) == 0:
             return None
         else:
@@ -22,8 +26,7 @@ class HouseholdController:
     @staticmethod
     def create_household(user_id: str):
         # Create a new household
-        household = Household()
-        household.users.append(user_id)
+        household = Household(owner_id=user_id)
         household_ref = db.collection('households').add( household.model_dump())
         return household_ref[1].id
 
@@ -87,20 +90,29 @@ class HouseholdController:
         db.collection('households').document(household_id).update({
             'users': ArrayUnion([user_id])
         })
-        return household_id
+        household['users'].append(user_id)
+        household['users'] = UserController.get_users(household['users'])
+        household['users'].insert(0,UserController.get_user(household['owner_id']))
+        return household['users']
     
     @staticmethod
     def kick_user(household_id: str, user_id: str):
         # Remove a user from a household
-        db.collection('households').document(household_id).update({
-            'users': ArrayRemove([user_id])
-        })
-
-        # Check if the user is the last one in the household
-        household = db.collection('households').document(household_id).get().to_dict()
-        if len(household['users']) == 0:
-            db.collection('households').document(household_id).delete()
+        household_ref = db.collection('households').document(household_id)
+        household = household_ref.get().to_dict()
+        # Check if the user is the owner of the household
+        if household['owner_id'] == user_id:
+            household_ref.delete()
             return None
+        elif user_id in household['users']:
+            household_ref.update({
+                'users': ArrayRemove([user_id])
+            })
+            household['users'].remove(user_id)
+            household['users'] = UserController.get_users(household['users'])
+            household['users'].insert(0,UserController.get_user(household['owner_id']))
+            return household['users']
         else:
-            return household_id
+            return None
+
     
