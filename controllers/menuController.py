@@ -41,7 +41,7 @@ class MenuController:
         for user_id in household['users']:
             user = UserController.get_user(user_id)
                 
-            if user is not None and recipe_id in user['recipes']:
+            if user is not None and recipe_id is not None and recipe_id in user['recipes']:
                 user['recipes'][recipe_id]['id'] = recipe_id
                 return user['recipes'][recipe_id]
     
