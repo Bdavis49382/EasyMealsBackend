@@ -13,9 +13,11 @@ from uuid import uuid4
 class MenuController:
     @staticmethod
     def add_recipe(household_id, menu_item: MenuItem):
-        return db.collection('households').document(household_id).update({
+        household_ref = db.collection('households').document(household_id)
+        household_ref.update({
             "menu_recipes": ArrayUnion([menu_item.model_dump()])
         })
+        return household_ref.get().to_dict()['menu_recipes']
 
 
     @staticmethod
@@ -38,7 +40,7 @@ class MenuController:
     @staticmethod
     def get_recipe(household_id: str, recipe_id: str):
         household = HouseholdController.get_household(household_id)
-        for user_id in household['users']:
+        for user_id in [household['owner_id'],*household['users']]:
             user = UserController.get_user(user_id)
                 
             if user is not None and recipe_id is not None and recipe_id in user['recipes']:
