@@ -16,7 +16,7 @@ class MenuController:
         household_ref.update({
             "menu_recipes": ArrayUnion([menu_item.model_dump()])
         })
-        return household_ref.get().to_dict()['menu_recipes']
+        return MenuController.get_menu(household_id)
 
 
     @staticmethod
