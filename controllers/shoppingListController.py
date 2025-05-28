@@ -12,12 +12,27 @@ class ShoppingListController:
         return ShoppingListController.convertList(household_id, shopping_list)
     
     def convertList(household_id: str,shopping_list: list[dict]):
+        user_cache = {}
+        recipe_cache = {}
         for item in shopping_list:
-            user = UserController.get_user(item['user_id'])
+            if item['user_id'] not in user_cache:
+                user = UserController.get_user(item['user_id'])
+                user_cache[item['user_id']] = user
+            else:
+                user = user_cache[item['user_id']]
             item['user_initial'] = user['full_name'][0]
-            recipe = MenuController.get_recipe(household_id, item['recipe_id'])
-            if recipe is not None:
-                item['recipe_title'] = recipe['title']
+
+            if item['recipe_id'] is not None:
+                if item['recipe_id'] not in recipe_cache:
+                    recipe = MenuController.get_recipe(household_id, item['recipe_id'])
+                    recipe_cache[item['recipe_id']] = recipe
+                else:
+                    recipe = recipe_cache[item['recipe_id']]
+
+                if recipe is not None:
+                    item['recipe_title'] = recipe['title']
+                else:
+                    item['recipe_title'] = ''
             else:
                 item['recipe_title'] = ''
         return shopping_list

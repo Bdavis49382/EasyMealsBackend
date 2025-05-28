@@ -8,7 +8,6 @@ from controllers.householdController import HouseholdController
 from controllers.feedController import FeedController
 from controllers.userController import UserController
 from controllers.allRecipes import AllRecipes
-from uuid import uuid4
 
 class MenuController:
     @staticmethod
