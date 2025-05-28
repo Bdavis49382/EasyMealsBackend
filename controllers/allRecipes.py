@@ -161,4 +161,7 @@ class RecipePage(BaseRecipe):
         return self._get_times_data("Servings:")
     
     def _get_image(self):
-        return self.soup.find("figure", {"class": "mntl-universal-primary-image"}).find("img").get('src')
+        try:
+            return self.soup.find("figure", {"class": "mntl-universal-primary-image"}).find("img").get('src')
+        except:
+            return self.soup.find("div",{"id":"article__photo-ribbon_1-0"}).find_all("img")[0].get('data-src')
