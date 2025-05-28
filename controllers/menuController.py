@@ -49,15 +49,17 @@ class MenuController:
     @staticmethod
     def get_recipe_online(link: str):
         raw_recipe = AllRecipes.get(link)
+        if len(raw_recipe.failures):
+            print('failed to retrieve these items, potentially outdated html info:',raw_recipe.failures)
         recipe = Recipe(
-            title=raw_recipe['name'], 
-            instructions=raw_recipe["steps"],
-            img_link=raw_recipe['image'], 
-            servings=raw_recipe['nb_servings'], 
+            title=raw_recipe.name, 
+            instructions=raw_recipe.steps,
+            img_link=raw_recipe.image, 
+            servings=raw_recipe.nb_servings, 
             src_link=link,
             src_name="Allrecipes.com",
-            ingredients=raw_recipe['ingredients'],
-            time_estimate=[raw_recipe['total_time'], raw_recipe['prep_time'], raw_recipe['cook_time']])
+            ingredients=raw_recipe.ingredients,
+            time_estimate=[raw_recipe.total_time, raw_recipe.prep_time, raw_recipe.cook_time])
         return recipe
     
     @staticmethod

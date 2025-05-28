@@ -6,10 +6,10 @@ import urllib.request
 import ssl
 
 
-class AllRecipes(object):
+class AllRecipes():
 
     @staticmethod
-    def get_recipes_from_page(url: str, card_class: str):
+    def _get_soup(url:str) -> BeautifulSoup:
         req = urllib.request.Request(url)
         req.add_header('Cookie', 'euConsent=true')
 
@@ -18,43 +18,18 @@ class AllRecipes(object):
         response = opener.open(req)
         html_content = response.read()
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+        return BeautifulSoup(html_content, 'html.parser')
 
-        search_data = []
+    @staticmethod
+    def get_recipes_from_page(url: str, card_class: str):
+        """
+        Find all recipes on the page
+        """
+        soup = AllRecipes._get_soup(url)
+
         articles = soup.findAll("a", {"class": card_class})
 
-        articles = [a for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
-
-        for article in articles:
-            data = {}
-            try:
-                data["title"] = article.find("span", {"class": "card__title"}).get_text().strip(' \t\n\r')
-                data["src_link"] = article['href']
-                try:
-                    data["rate"] = len(article.find_all("svg", {"class": "icon-star"}))
-                    try:
-                        if len(article.find_all("svg", {"class": "icon-star-half"})):
-                            data["rate"] += 0.5
-                    except Exception:
-                        pass
-                except Exception as e0:
-                    data["rate"] = None
-                try:
-                    data["img_link"] = article.find('img')['data-src']
-                except Exception as e1:
-                    try:
-                        data["img_link"] = article.find('img')['src']
-                    except Exception as e1:
-                        pass
-                    if "img_link" not in data:
-                        data["img_link"] = None
-            except Exception as e2:
-                pass
-            if data:
-                search_data.append(data)
-
-        return search_data
-
+        return [dict(RecipeCard(a)) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
     @staticmethod
     def search(search_string):
@@ -73,58 +48,7 @@ class AllRecipes(object):
         return AllRecipes.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card')
 
     @staticmethod
-    def _get_name(soup):
-        return soup.find("h1", {"class": "article-heading"}).get_text().strip(' \t\n\r')
-
-    @staticmethod
-    def _get_rating(soup):
-        return float(soup.find("div", {"id": "mm-recipes-review-bar__rating_1-0"}).get_text().strip(' \t\n\r'))
-
-    @staticmethod
-    def _get_ingredients(soup):
-        return [li.get_text().strip(' \t\n\r') for li in soup.find("div", {"id": "mm-recipes-structured-ingredients_1-0"}).find_all("li")]
-
-    @staticmethod
-    def _get_steps(soup):
-        return [li.get_text().strip(' \t\n\r') for li in soup.find("div", {"id": "mm-recipes-steps_1-0"}).find_all("li")]
-
-    @staticmethod
-    def _get_times_data(soup, text):
-        labels = soup.find_all("div", {"class":"mm-recipes-details__label"})
-        values = soup.find_all("div", {"class":"mm-recipes-details__value"})
-        res = zip(labels,values)
-        data = {}
-        for i in res:
-            data[i[0].text] = i[1].text
-        return data[text]
-    
-    @staticmethod
-    def _get_image_data(soup):
-        return soup.find("div",{"id":"article-content_1-0"}).find("img", {"class": "mntl-image"}).get("data-hi-res-src","")
-
-
-    @classmethod
-    def _get_prep_time(cls, soup):
-        return cls._get_times_data(soup, "Prep Time:")
-
-    @classmethod
-    def _get_cook_time(cls, soup):
-        return cls._get_times_data(soup, "Cook Time:")
-
-    @classmethod
-    def _get_total_time(cls, soup):
-        return cls._get_times_data(soup, "Total Time:")
-
-    @classmethod
-    def _get_nb_servings(cls, soup):
-        return cls._get_times_data(soup, "Servings:")
-    
-    @classmethod
-    def _get_image(cls, soup):
-        return cls._get_image_data(soup)
-
-    @classmethod
-    def get(cls, url):
+    def get(url):
         """
         'url' from 'search' method.
             ex. "/recipe/106349/beef-and-spinach-curry/"
@@ -132,33 +56,109 @@ class AllRecipes(object):
         # base_url = "https://allrecipes.com/"
         # url = base_url + uri
 
-        req = urllib.request.Request(url)
-        req.add_header('Cookie', 'euConsent=true')
+        soup = AllRecipes._get_soup(url)
 
-        handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
-        opener = urllib.request.build_opener(handler)
-        response = opener.open(req)
-        html_content = response.read()
+        return RecipePage(url,soup)
 
-        soup = BeautifulSoup(html_content, 'html.parser')
+class BaseRecipe:
+    def __init__(self):
+        self.failures = []
 
-        elements = [
-            {"name": "name", "default_value": ""},
-            {"name": "ingredients", "default_value": []},
-            {"name": "steps", "default_value": []},
-            {"name": "rating", "default_value": None},
-            {"name": "prep_time", "default_value": ""},
-            {"name": "cook_time", "default_value": ""},
-            {"name": "total_time", "default_value": ""},
-            {"name": "nb_servings", "default_value": None},
-            {"name": "image", "default_value": ""},
-        ]
+    def try_find(self, function, name: str, default = ''):
+        try:
+            return function()
+        except:
+            self.failures.append(name)
+            return default
 
-        data = {"src_link": url}
-        for element in elements:
-            try:
-                data[element["name"]] = getattr(cls, "_get_" + element["name"])(soup)
-            except:
-                data[element["name"]] = element["default_value"]
+class RecipeCard(BaseRecipe):
+    def __init__(self, soup: BeautifulSoup):
+        super().__init__()
+        self.soup: BeautifulSoup = soup
+        self.title = self.try_find(self._get_title,'title')
+        self.src_link = self.try_find(self._get_src_link,'src_link')
+        self.rate = self.try_find(self._get_rate, 'rate', None)
+        self.img_link = self.try_find(self.get_img_link,'img_link', None)
+    
+    def __iter__(self):
+        yield 'title',self.title
+        yield 'src_link',self.src_link
+        yield 'rate',self.rate
+        yield 'img_link',self.img_link
+        
+    def _get_title(self):
+        return self.soup.find("span", {"class": "card__title"}).get_text().strip(' \t\n\r')
+    def _get_src_link(self):
+        return self.soup['href']
+    def _get_rate(self):
+        stars = len(self.soup.find_all("svg", {"class": "icon-star"}))
+        try:
+            if len(self.soup.find_all("svg", {"class": "icon-star-half"})):
+                stars += 0.5
+            return stars
+        except:
+            return stars
+    def get_img_link(self):
+        try:
+            return self.soup.find('img')['data-src']
+        except:
+            return self.soup.find('img')['src']
 
-        return data
+
+class RecipePage(BaseRecipe):
+    def __init__(self, url: str, soup: BeautifulSoup):
+        super().__init__()
+        self.src_link: str = url
+        self.soup: BeautifulSoup = soup
+        self.name = self.try_find(self._get_name,'name')
+        self.ingredients = self.try_find(self._get_ingredients, 'ingredients', [])
+        self.steps = self.try_find(self._get_steps, 'steps', [])
+        self.rating = self.try_find(self._get_rating,'rating')
+        self.prep_time = self.try_find(self._get_prep_time,'prep_time')
+        self.cook_time = self.try_find(self._get_cook_time,'cook_time')
+        self.total_time = self.try_find(self._get_total_time,'total_time')
+        self.nb_servings = self.try_find(self._get_nb_servings,'nb_servings',None)
+        self.image = self.try_find(self._get_image,'image')
+    
+    def try_find(self, function, name: str, default = ''):
+        try:
+            return function()
+        except:
+            self.failures.append(name)
+            return default
+
+    def _get_times_data(self, text):
+        labels = self.soup.find_all("div", {"class":"mm-recipes-details__label"})
+        values = self.soup.find_all("div", {"class":"mm-recipes-details__value"})
+        res = zip(labels,values)
+        data = {}
+        for i in res:
+            data[i[0].text] = i[1].text
+        return data[text]
+
+    def _get_name(self):
+        return self.soup.find("h1", {"class": "article-heading"}).get_text().strip(' \t\n\r')
+
+    def _get_ingredients(self):
+            return [li.get_text().strip(' \t\n\r') for li in self.soup.find("div", {"id": "mm-recipes-structured-ingredients_1-0"}).find_all("li")]
+
+    def _get_steps(self):
+            return [li.get_text().strip(' \t\n\r') for li in self.soup.find("div", {"id": "mm-recipes-steps_1-0"}).find_all("p",{"class": "mntl-sc-block-html"})]
+    
+    def _get_rating(self):
+        return float(self.soup.find("div", {"id": "mm-recipes-review-bar__rating_1-0"}).get_text().strip(' \t\n\r'))
+
+    def _get_prep_time(self):
+        return self._get_times_data("Prep Time:")
+
+    def _get_cook_time(self):
+        return self._get_times_data("Cook Time:")
+    
+    def _get_total_time(self):
+        return self._get_times_data("Total Time:")
+    
+    def _get_nb_servings(self):
+        return self._get_times_data("Servings:")
+    
+    def _get_image(self):
+        return self.soup.find("figure", {"class": "mntl-universal-primary-image"}).find("img").get('src')

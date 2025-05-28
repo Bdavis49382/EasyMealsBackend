@@ -22,9 +22,9 @@ class FeedController:
 
     @staticmethod
     def get_user_recipes(household_id: str, keyword: str | None = None):
-        users = HouseholdController.get_household(household_id)['users']
+        household = HouseholdController.get_household(household_id)
         recipes = []
-        for user_id in users:
+        for user_id in [household['owner_id'],*household['users']]:
             user_data = db.collection('users').document(user_id).get().to_dict()
             if user_data is not None and 'recipes' in user_data:
                 for id, recipe in user_data['recipes'].items():
@@ -53,7 +53,7 @@ class FeedController:
     def sort_recipes(household_id : str,recipes: list):
         for recipe in recipes:
             score = 0
-            if 'rate' in recipe:
+            if 'rate' in recipe and recipe['rate'] != None:
                 if recipe['rate'] == 5:
                     score += 10
                 elif recipe['rate'] > 4:
