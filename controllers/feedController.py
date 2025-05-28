@@ -2,9 +2,11 @@ from firebase import db
 from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
 from models.Recipe import Recipe
+from models.Record import Record
 from controllers.householdController import HouseholdController
 from controllers.allRecipes import AllRecipes
 from uuid import uuid4
+import random
 
 class FeedController:
     @staticmethod
@@ -51,6 +53,11 @@ class FeedController:
 
     @staticmethod
     def sort_recipes(household_id : str,recipes: list):
+        if household_id != None:
+            menu = HouseholdController.get_household(household_id)['menu_recipes']
+            menu_ids = [x['recipe_id'] for x in menu]
+        else:
+            menu_ids = []
         for recipe in recipes:
             score = 0
             if 'rate' in recipe and recipe['rate'] != None:
@@ -63,7 +70,28 @@ class FeedController:
                 else:
                     score -= 5
             else:
-                score = 50
+                if 'id' in recipe and recipe['id'] in menu_ids:
+                    score -= 200
+                if 'history' in recipe:
+                    history = [Record(household_id=x['household_id'],timestamp=x['timestamp'],rating=x['rating']) for x in recipe['history']]
+                    most_recent = max(x.timestamp for x in history)
+                    rating = sum(x.rating for x in history)/len(history)
+                    waiting_time = 30
+                    # decide how long to wait before suggesting a recipe again based on how it was rated.
+                    if rating != None:
+                        if rating == 5:
+                            waiting_time = 7
+                        if rating >= 4:
+                            waiting_time = 14
+                        elif rating >= 3:
+                            waiting_time = 30
+                        else:
+                            waiting_time = 60
+                    if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
+                        score += 3*rating
+                    else:
+                        score -= 10
+            score += (random.random() * 10) - 5
             recipe['score'] = score
         recipes.sort(key=lambda x: x['score'], reverse=True)
         return recipes
