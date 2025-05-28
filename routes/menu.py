@@ -26,7 +26,7 @@ async def add_recipe(request: Request, menu_item: MenuItem, user_id : str):
     res = MenuController.add_recipe(request.state.household_id, menu_item)
     if res is None:
         return {"message":"failed"}
-    res = ShoppingListController.add_items(request.state.household_id, ShoppingListController.wrap_items(menu_item.active_items, user_id, menu_item.recipe_id))
+    shoppingRes = ShoppingListController.add_items(request.state.household_id, ShoppingListController.wrap_items(menu_item.active_items, user_id, menu_item.recipe_id))
     return {"message": "successfully added to menu with items added to shopping list.","recipe_id":menu_item.recipe_id,"menu":res}
 
 @router.get("/get/recipe")
