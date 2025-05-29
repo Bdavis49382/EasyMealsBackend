@@ -25,7 +25,7 @@ class FeedController:
     
     @staticmethod
     async def upload_image(file: UploadFile):
-        blob = bucket.blob(file.filename)
+        blob = bucket.blob(uuid4().__str__())
         blob.upload_from_string(await file.read(), content_type=file.content_type)
         blob.make_public()
         return blob.public_url
