@@ -1,4 +1,4 @@
-from firebase import db
+from firebase import db, bucket
 from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
 from models.Recipe import Recipe
@@ -6,6 +6,7 @@ from models.Record import Record
 from controllers.householdController import HouseholdController
 from controllers.allRecipes import AllRecipes
 from uuid import uuid4
+from fastapi import UploadFile
 import random
 
 class FeedController:
@@ -21,6 +22,13 @@ class FeedController:
             f"recipes.{recipe_id}": recipe_dict
         })
         return recipe_id
+    
+    @staticmethod
+    async def upload_image(file: UploadFile):
+        blob = bucket.blob(file.filename)
+        blob.upload_from_string(await file.read(), content_type=file.content_type)
+        blob.make_public()
+        return blob.public_url
 
     @staticmethod
     def get_user_recipes(household_id: str, keyword: str | None = None):

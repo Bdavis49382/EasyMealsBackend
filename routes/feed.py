@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, UploadFile
 from models.Recipe import Recipe
 from controllers.feedController import FeedController
 
@@ -11,6 +11,11 @@ router = APIRouter(
 async def add_recipe(user_id: str, recipe: Recipe):
     FeedController.add_recipe(user_id, recipe)
     return {"message": "Recipe added to feed successfully"}
+
+@router.post('/upload/image')
+async def upload_image(file: UploadFile):
+    url = await FeedController.upload_image(file)
+    return url
 
 @router.get("/get")
 async def get_feed(request: Request):
