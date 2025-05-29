@@ -72,7 +72,7 @@ class FeedController:
             else:
                 if 'id' in recipe and recipe['id'] in menu_ids:
                     score -= 200
-                if 'history' in recipe:
+                if 'history' in recipe and len(recipe['history']) != 0:
                     history = [Record(household_id=x['household_id'],timestamp=x['timestamp'],rating=x['rating']) for x in recipe['history']]
                     most_recent = max(x.timestamp for x in history)
                     rating = sum(x.rating for x in history)/len(history)
