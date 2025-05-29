@@ -99,6 +99,8 @@ class FeedController:
                         score += 3*rating
                     else:
                         score -= 10
+                else:
+                    score += 10 # recipes that have been added but not tried should go near the top
             score += (random.random() * 10) - 5
             recipe['score'] = score
         recipes.sort(key=lambda x: x['score'], reverse=True)
