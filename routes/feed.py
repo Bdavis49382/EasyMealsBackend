@@ -9,8 +9,8 @@ router = APIRouter(
 
 @router.post("/add/{user_id}")
 async def add_recipe(user_id: str, recipe: Recipe):
-    FeedController.add_recipe(user_id, recipe)
-    return {"message": "Recipe added to feed successfully"}
+    recipe_id = FeedController.add_recipe(user_id, recipe)
+    return recipe_id
 
 @router.post('/upload/image')
 async def upload_image(file: UploadFile):
