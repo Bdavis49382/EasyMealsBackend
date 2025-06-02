@@ -67,6 +67,7 @@ class FeedController:
 
     @staticmethod
     def sort_recipes(household_id : str,recipes: list):
+        visited_titles = set()
         if household_id != None:
             menu = HouseholdController.get_household(household_id)['menu_recipes']
             menu_ids = [x['recipe_id'] for x in menu]
@@ -74,6 +75,8 @@ class FeedController:
             menu_ids = []
         for recipe in recipes:
             score = 0
+            if recipe['title'] in visited_titles:
+                score = -400
             if 'rate' in recipe and recipe['rate'] != None:
                 if recipe['rate'] == 5:
                     score += 10
@@ -109,7 +112,8 @@ class FeedController:
                     score += 10 # recipes that have been added but not tried should go near the top
             score += (random.random() * 10) - 5
             recipe['score'] = score
+            visited_titles.add(recipe['title'])
         recipes.sort(key=lambda x: x['score'], reverse=True)
-        return recipes
+        return [x for x in recipes if x['score'] > -100]
 
 

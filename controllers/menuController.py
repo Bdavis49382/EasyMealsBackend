@@ -5,8 +5,6 @@ from models.Household import MenuItem
 from models.Record import Record
 from models.Recipe import Recipe
 from controllers.householdController import HouseholdController
-from controllers.feedController import FeedController
-from controllers.userController import UserController
 from controllers.allRecipes import AllRecipes
 
 class MenuController:
