@@ -23,6 +23,12 @@ class FeedController:
         })
         return recipe_id
     
+    def update_recipe(user_id: str, recipe_id: str, recipe: Recipe):
+        db.collection('users').document(user_id).update({
+            f"recipes.{recipe_id}": recipe.model_dump()
+        })
+        return recipe_id
+
     @staticmethod
     async def upload_image(file: UploadFile):
         blob = bucket.blob(uuid4().__str__())

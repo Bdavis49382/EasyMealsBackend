@@ -12,6 +12,11 @@ async def add_recipe(user_id: str, recipe: Recipe):
     recipe_id = FeedController.add_recipe(user_id, recipe)
     return recipe_id
 
+@router.post("/update/{user_id}/{recipe_id}")
+async def update_recipe(user_id: str,recipe_id: str, recipe: Recipe):
+    recipe_id = FeedController.update_recipe(user_id, recipe_id, recipe)
+    return recipe_id
+
 @router.post('/upload/image')
 async def upload_image(file: UploadFile):
     url = await FeedController.upload_image(file)
