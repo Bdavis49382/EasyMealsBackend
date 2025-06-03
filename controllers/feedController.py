@@ -92,10 +92,10 @@ class FeedController:
                 if 'history' in recipe and len(recipe['history']) != 0:
                     history = [Record(household_id=x['household_id'],timestamp=x['timestamp'],rating=x['rating']) for x in recipe['history']]
                     most_recent = max(x.timestamp for x in history)
-                    rating = sum(x.rating for x in history)/len(history)
                     waiting_time = 30
                     # decide how long to wait before suggesting a recipe again based on how it was rated.
-                    if rating != None:
+                    if any(x.rating != None for x in history):
+                        rating = sum(x.rating for x in history if x.rating != None)/len(history)
                         if rating == 5:
                             waiting_time = 7
                         if rating >= 4:
@@ -104,10 +104,8 @@ class FeedController:
                             waiting_time = 30
                         else:
                             waiting_time = 60
-                    if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
-                        score += 3*rating
-                    else:
-                        score -= 10
+                        if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
+                            score += 3*rating
                 else:
                     score += 10 # recipes that have been added but not tried should go near the top
             score += (random.random() * 10) - 5
