@@ -25,7 +25,10 @@ class AllRecipes():
         """
         Find all recipes on the page
         """
-        soup = AllRecipes._get_soup(url)
+        try:
+            soup = AllRecipes._get_soup(url)
+        except:
+            return []
 
         articles = soup.findAll("a", {"class": card_class})
 
