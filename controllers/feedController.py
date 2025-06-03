@@ -106,6 +106,8 @@ class FeedController:
                             waiting_time = 60
                         if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
                             score += 3*rating
+                    if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
+                        score += 10
                 else:
                     score += 10 # recipes that have been added but not tried should go near the top
             score += (random.random() * 10) - 5
