@@ -51,6 +51,8 @@ async def join_household(user_id: str, code: str):
 
 @router.delete("/kick/{user_id}")
 async def kick_user(request: Request, user_id: str):
+    if request.state.user_id != HouseholdController.get_household(request.state.household_id)['owner_id']:
+        return {"message": "Only admin can kick other users"}
     new_users = HouseholdController.kick_user(request.state.household_id, user_id)
     if new_users is None:
         return {"message": "household removed or user not found"}

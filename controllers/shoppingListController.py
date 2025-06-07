@@ -49,7 +49,6 @@ class ShoppingListController:
             if 'time_checked' in item and item['time_checked'] is not None:
                 if datetime.now(timezone.utc) - item['time_checked'] > timedelta(hours=12):
                     return False
-            print(item['recipe_id'])
             if 'recipe_id' in item and item['recipe_id'] != None and  item['recipe_id'] not in menu_ids:
                 return False
             return True

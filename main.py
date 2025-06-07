@@ -18,14 +18,16 @@ async def provide_household_id(request: Request):
         raise HTTPException(status_code=401, detail="Invalid auth token")
 
     if 'uid' in user:
-        user_info = UserController.get_user(user['uid'])
+        uid = user['uid']
+        request.state.user_id = uid
+        user_info = UserController.get_user(uid)
         if user_info == None:
-            res = UserController.create_user(User(full_name=user['name'],google_id=user['uid']))
+            res = UserController.create_user(User(full_name=user['name'],google_id=uid))
             if res == None:
                 raise HTTPException(status_code=500, detail="Failed to create new user in database")
-        household_id = HouseholdController.find_household(user['uid'])
+        household_id = HouseholdController.find_household(uid)
         if household_id is None:
-            household_id = HouseholdController.create_household(user['uid'])
+            household_id = HouseholdController.create_household(uid)
         request.state.household_id = household_id
     else:
         raise HTTPException(status_code=401, detail="User information incomplete")
