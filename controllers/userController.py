@@ -14,12 +14,12 @@ class UserController:
     def get_user(user_id: str):
         # Get user data
         user = db.collection('users').document(user_id).get().to_dict()
+        if user is None:
+            return None
         if 'recipes' in user:
             # don't display the recipes
             user['recipes'] = f"{len(user['recipes'])} recipes"
         user['id'] = user_id
-        if user is None:
-            return None
         return user
 
     @staticmethod

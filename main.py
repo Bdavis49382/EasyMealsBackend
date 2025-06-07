@@ -19,7 +19,7 @@ async def provide_household_id(request: Request):
 
     if 'uid' in user:
         user_info = UserController.get_user(user['uid'])
-        if not user_info:
+        if user_info == None:
             res = UserController.create_user(User(full_name=user['display_name'],google_id=user['uid']))
             if res == None:
                 raise HTTPException(status_code=500, detail="Failed to create new user in database")
