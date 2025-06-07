@@ -4,8 +4,11 @@ from models.Household import User
 class UserController:
     @staticmethod
     def create_user(user: User):
-        ref = db.collection('users').add( user.model_dump())
-        return ref[1].id
+        res = db.collection('users').document(user.google_id).set( user.model_dump())
+        if res == None:
+            return None
+
+        return user.google_id
     
     @staticmethod
     def get_user(user_id: str):
