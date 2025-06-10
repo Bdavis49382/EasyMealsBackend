@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import datetime
 from models.Ingredient import Ingredient
 from models.Record import Record
 
@@ -14,6 +15,37 @@ class Recipe(BaseModel):
     src_name: str | None = None
     ingredients: list[str]
     history: list[Record] = []
+
+class MenuItem(BaseModel):
+    note: str = ''
+    date: datetime | None = None
+    active_items: list[str]
+    # Should have either recipe_id or recipe
+    recipe_id: str | None = None
+    recipe: Recipe | None = None
+
+class MenuItemOut(BaseModel):
+    note: str
+    date: datetime | None
+    active_items: list[str]
+    recipe: Recipe
+
+
+class RecipeOut(BaseModel):
+    # when coming out, recipe should have an id
+    id: str
+    title: str
+    permissions_required: str
+    instructions: list[str]
+    img_link: str
+    author_id: str
+    servings: str | None
+    time_estimate: list[str] #total time, prep time, cook time
+    src_link: str
+    src_name: str | None
+    ingredients: list[str]
+    history: list[Record]
+
 
 
 # example

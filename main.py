@@ -5,17 +5,24 @@ from firebase_admin import auth
 from typing_extensions import Annotated
 from controllers.householdController import HouseholdController
 from controllers.userController import UserController
+from os import getenv
 
 async def provide_household_id(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="missing auth token")
 
-    # Remove the Bearer part and verify token with firebase
-    try:
-        user = auth.verify_id_token(auth_header.split(" ")[1])
-    except:
-        raise HTTPException(status_code=401, detail="Invalid auth token")
+    # When testing, use a test user.
+    env = getenv("ENVIRONMENT")
+    if env != None and 'Dev' in env:
+        user = {'uid':'1','name':'Bob Testerman'}
+    else:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="missing auth token")
+
+        # Remove the Bearer part and verify token with firebase
+        try:
+            user = auth.verify_id_token(auth_header.split(" ")[1])
+        except:
+            raise HTTPException(status_code=401, detail="Invalid auth token")
 
     if 'uid' in user:
         uid = user['uid']

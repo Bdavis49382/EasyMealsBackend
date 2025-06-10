@@ -1,5 +1,7 @@
 import firebase_admin
 from firebase_admin import credentials, firestore, storage
+from google.cloud.firestore_v1.collection import CollectionReference
+from google.cloud.firestore_v1.document import DocumentReference
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -12,3 +14,9 @@ app = firebase_admin.initialize_app(cred, {
 bucket = storage.bucket()
 
 db = firestore.client()
+
+def household_ref() -> CollectionReference:
+    return db.collection('household')
+
+def user_ref() -> CollectionReference:
+    return db.collection('users')

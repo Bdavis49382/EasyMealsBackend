@@ -1,7 +1,21 @@
 from firebase import db
 from models.Household import User
+from repositories.userRepository import UserRepository
+from typing import Annotated
+from fastapi import Depends
 
 class UserController:
+    def __init__(self, user_repo: Annotated[UserRepository, Depends()]):
+        self.user_repo = user_repo
+
+    def create_user(self, user: User):
+        res = self.user_repo.create_user(user)
+        if res == None:
+            return None
+
+        return user.google_id
+    
+
     @staticmethod
     def create_user(user: User):
         res = db.collection('users').document(user.google_id).set( user.model_dump())
@@ -40,3 +54,4 @@ class UserController:
             user_list.append(user)
 
         return user_list
+    

@@ -114,4 +114,4 @@ class ShoppingListController:
         return ShoppingListController.convertList(household_id, shopping_list)
 
     def wrap_items(item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
-        return [ShoppingItem(name=x, user_id=user_id, recipe_id=recipe_id) for x in item_strings]
+        return [ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings]

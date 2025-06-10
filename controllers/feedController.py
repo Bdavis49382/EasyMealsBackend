@@ -115,5 +115,3 @@ class FeedController:
             visited_titles.add(recipe['title'])
         recipes.sort(key=lambda x: x['score'], reverse=True)
         return [x for x in recipes if x['score'] > -100]
-
-

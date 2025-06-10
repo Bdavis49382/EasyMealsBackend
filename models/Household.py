@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from models.Recipe import Recipe
+from models.Recipe import Recipe, MenuItem
 
 class User(BaseModel):
     full_name: str
@@ -10,16 +10,6 @@ class User(BaseModel):
 class JoinCode(BaseModel):
     code: str
     expiration_date: datetime
-
-class MenuItem(BaseModel):
-    note: str = ''
-    date: datetime | None = None
-    active_items: list[str]
-    # Should have either recipe_id or recipe
-    recipe_id: str | None = None
-    recipe: Recipe | None = None
-
-
 
 class ShoppingItem(BaseModel):
     name: str
@@ -32,6 +22,7 @@ class ActiveItems(BaseModel):
     items: list[str] = []
 
 class Household(BaseModel):
+    id: str | None = None
     users: list[str] = []
     owner_id: str
     join_code: JoinCode | None = None
