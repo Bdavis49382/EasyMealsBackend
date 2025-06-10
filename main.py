@@ -7,7 +7,7 @@ from controllers.householdController import HouseholdController
 from controllers.userController import UserController
 from os import getenv
 
-async def provide_household_id(request: Request):
+async def provide_household_id(request: Request, user_controller: Annotated[UserController, Depends()]):
 
     # When testing, use a test user.
     env = getenv("ENVIRONMENT")
@@ -27,9 +27,9 @@ async def provide_household_id(request: Request):
     if 'uid' in user:
         uid = user['uid']
         request.state.user_id = uid
-        user_info = UserController.get_user(uid)
+        user_info = user_controller.get_user(uid)
         if user_info == None:
-            res = UserController.create_user(User(full_name=user['name'],google_id=uid))
+            res = user_controller.create_user(User(full_name=user['name'],google_id=uid))
             if res == None:
                 raise HTTPException(status_code=500, detail="Failed to create new user in database")
         household_id = HouseholdController.find_household(uid)

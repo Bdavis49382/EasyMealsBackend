@@ -10,8 +10,6 @@ from google.cloud.firestore_v1.document import DocumentReference
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
 from google.cloud.firestore_v1.query import Query
 
-
-
 @fixture
 def mock_user(mock_user_dict):
     mock_user = MagicMock(spec=User)

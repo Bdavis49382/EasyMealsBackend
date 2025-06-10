@@ -14,8 +14,9 @@ class UserRepository:
     def __init__(self, user_ref: Annotated[CollectionReference, Depends(user_ref)]):
         self.user_ref = user_ref
 
-    def create_user(self, user: User) -> None:
+    def create_user(self, user: User) -> str:
         self.user_ref.document(user.google_id).set( user.model_dump())
+        return user.google_id
 
     def get_user(self, user_id: str) -> User | None:
         user = self.user_ref.document(user_id).get().to_dict()

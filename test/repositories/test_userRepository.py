@@ -11,12 +11,13 @@ def test_create_user(user_repo, mock_document, mock_user, mock_user_dict):
     # Arrange
 
     # Act
-    user_repo.create_user(mock_user)
+    result: str = user_repo.create_user(mock_user)
 
     # Assert
     mock_document.set.assert_called_once()
     mock_user.model_dump.assert_called_once()
     mock_document.set.assert_called_with(mock_user_dict)
+    assert result == mock_user.google_id
 
 def test_get_user(user_repo, mock_snapshot, mock_user_dict):
     # Arrange
