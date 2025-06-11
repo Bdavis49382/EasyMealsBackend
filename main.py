@@ -2,8 +2,6 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from models.Household import User
 from routes import shopping_list, household, feed, user, menu
 from typing_extensions import Annotated
-from controllers.householdController import HouseholdController
-from controllers.userController import UserController
 from os import getenv
 from auth import provide_household_id, get_user, get_test_user_fixed
 

@@ -68,15 +68,17 @@ def test_get_household_by_code_no_result(repo, mock_query):
     # Assert
     assert household == None
 
-def test_update_code(repo, mock_document):
+def test_update_code(repo, mock_document, mock_join_code):
     # Arrange
+    mock_join_code.code = "1"
+    mock_join_code.model_dump.return_value = {"code":"1"}
 
     # Act
-    repo.update_code("1","1")
+    repo.update_code("1",mock_join_code)
 
     # Assert
     mock_document.update.assert_called_once()
-    assert "1" in mock_document.update.call_args[0][0]['join_code']
+    assert "1" in mock_document.update.call_args[0][0]['join_code']['code']
 
 def test_add_items(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item):
     # Arrange

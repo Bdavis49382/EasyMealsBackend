@@ -23,7 +23,7 @@ async def get_user(request: Request) -> dict:
         except:
             raise HTTPException(status_code=401, detail="Invalid auth token")
 
-async def provide_household_id(request: Request, user_controller: Annotated[UserController, Depends()], user: Annotated[dict, Depends(get_user)]):
+async def provide_household_id(request: Request, user_controller: Annotated[UserController, Depends()], user: Annotated[dict, Depends(get_user)], household_controller: Annotated[HouseholdController, Depends()]):
     if 'uid' in user:
         uid = user['uid']
         request.state.user_id = uid
@@ -32,9 +32,9 @@ async def provide_household_id(request: Request, user_controller: Annotated[User
             res = user_controller.create_user(User(full_name=user['name'],google_id=uid))
             if res == None:
                 raise HTTPException(status_code=500, detail="Failed to create new user in database")
-        household_id = HouseholdController.find_household(uid)
+        household_id = household_controller.find_household(uid)
         if household_id is None:
-            household_id = HouseholdController.create_household(uid)
+            household_id = household_controller.create_household(uid)
         request.state.household_id = household_id
     else:
         raise HTTPException(status_code=401, detail="User information incomplete")

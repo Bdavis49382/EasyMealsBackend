@@ -1,11 +1,12 @@
 from main import app
 from auth import get_user, get_test_user_random as mock_auth, get_test_user_fixed as mock_auth_fixed
 from pytest import fixture
-from firebase import user_test_ref as mock_ref, user_ref
+from firebase import user_test_ref as mock_ref, user_ref, household_ref, household_test_ref
 from fastapi.testclient import TestClient
 
 
 app.dependency_overrides[user_ref] = mock_ref
+app.dependency_overrides[household_ref] = household_test_ref
 app.dependency_overrides[get_user] = mock_auth
 
 @fixture(scope="module")

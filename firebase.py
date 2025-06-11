@@ -16,7 +16,7 @@ bucket = storage.bucket()
 db = firestore.client()
 
 def household_ref() -> CollectionReference:
-    return db.collection('household')
+    return db.collection('households')
 
 def user_ref() -> CollectionReference:
     return db.collection('users')

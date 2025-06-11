@@ -57,9 +57,11 @@ def test_get_users_no_whitelist(mock_collection, user_repo, mock_snapshot, mock_
     assert result[0] == User.model_validate(mock_user_dict)
     assert len(result) == 1
 
-def test_get_users_with_whitelist(mock_collection, user_repo, mock_snapshot, mock_user_dict):
+def test_get_users_with_whitelist(mock_collection, user_repo, mock_snapshot, mock_user_dict, mock_query):
     # Arrange
-    mock_collection.where.return_value = [mock_snapshot]
+    mock_collection.where.return_value = mock_query
+    mock_snapshot.id = 'fake'
+    mock_query.get.return_value = [mock_snapshot]
     mock_collection.get.return_value = []
     mock_snapshot.to_dict.return_value = mock_user_dict
     

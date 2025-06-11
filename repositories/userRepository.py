@@ -1,4 +1,4 @@
-from models.User import User, UserLite
+from models.User import User
 from models.Recipe import Recipe, RecipeOut
 from models.Record import Record
 from firebase import user_ref
@@ -26,14 +26,18 @@ class UserRepository:
             return None
     
     def get_users(self,white_list: list[str] | None = None) -> list[User]:
-        user_list = []
+        user_list = {}
         if white_list != None:
-            user_docs = self.user_ref.where(FieldPath.document_id(), "in", white_list)
+            user_docs = self.user_ref.where(FieldPath.document_id(), "in", white_list).get()
         else:
             user_docs = self.user_ref.get()
         for user_data in user_docs:
-            user_list.append(User.model_validate(user_data.to_dict()))
-        return user_list
+            user_list[user_data.id] = User.model_validate(user_data.to_dict())
+        if white_list != None:
+            # if there is a white list, we want to return the values in the same order they were in the list.
+            return [user_list[x] for x in white_list]
+        else:
+            return list(user_list.values())
 
     def add_recipe(self, user_id: str, recipe: Recipe) -> str:
         recipe_id = uuid4().__str__()

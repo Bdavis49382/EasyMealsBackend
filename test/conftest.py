@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from models.Recipe import Recipe, MenuItem
 from models.Record import Record
 from models.User import User
+from models.Household import JoinCode, Household
 from models.ShoppingItem import ShoppingItem
 from datetime import datetime
 from google.cloud.firestore_v1.collection import CollectionReference
@@ -105,11 +106,19 @@ def mock_household_dict(mock_join_code_dict):
     }
 
 @fixture
+def mock_household():
+    return MagicMock(spec=Household)
+
+@fixture
 def mock_join_code_dict():
     return {
         "code":"1234",
         "expiration_date": datetime(2000,1,1)
     }
+
+@fixture
+def mock_join_code():
+    return MagicMock(spec=JoinCode)
 
 @fixture
 def mock_shopping_item():

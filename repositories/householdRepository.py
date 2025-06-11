@@ -1,4 +1,4 @@
-from models.User import User, UserLite
+from models.User import User 
 from models.Recipe import Recipe, RecipeOut, MenuItem
 from models.ShoppingItem import ShoppingItem
 from models.Household import Household, JoinCode
@@ -34,7 +34,7 @@ class HouseholdRepository:
         household_ref = self.household_ref.add( household.model_dump())
         return household_ref[1].id
 
-    def get_code(self,household_id: str) -> JoinCode | None:
+    def get_join_code(self,household_id: str) -> JoinCode | None:
         return self.get_household(household_id).join_code
     
     def add_user(self, household_id: str, user_id: str) -> None:
@@ -63,9 +63,9 @@ class HouseholdRepository:
         return None
 
     
-    def update_code(self, household_id: str, new_code: str) -> None:
+    def update_code(self, household_id: str, new_code: JoinCode) -> None:
         self.household_ref.document(household_id).update({
-            'join_code': new_code
+            'join_code': new_code.model_dump()
         })
 
     def add_items(self, household_id: str, items: list[ShoppingItem]) -> None:

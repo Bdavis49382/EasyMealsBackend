@@ -4,7 +4,9 @@ from google.cloud.firestore_v1 import ArrayUnion
 from models.Household import ShoppingItem
 from controllers.userController import UserController
 from controllers.menuController import MenuController
-from controllers.householdController import HouseholdController
+from repositories.householdRepository import HouseholdRepository
+from typing import Annotated
+from fastapi import Depends
 
 class ShoppingListController:
     def get_shopping_list(household_id: str):
@@ -38,11 +40,11 @@ class ShoppingListController:
                 item['recipe_title'] = ''
         return shopping_list
 
-    def clean_list(household_id: str):
+    def clean_list(household_id: str, household_repo: Annotated[HouseholdRepository, Depends()]):
         ref = db.collection('households').document(household_id)
         shopping_list = ref.get().to_dict()["shopping_list"]
-        menu = HouseholdController.get_household(household_id)['menu_recipes']
-        menu_ids = [x['recipe_id'] for x in menu]
+        menu = household_repo.get_household(household_id).menu_recipes
+        menu_ids = [x.recipe_id for x in menu]
 
         def item_is_valid(item):
             # if an item has been checked for more than 12 hours, remove it from the list
