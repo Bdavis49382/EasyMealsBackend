@@ -7,13 +7,13 @@ router = APIRouter(
     prefix="/user",
     tags= ["User"]
 )
-@router.post("/create")
+@router.post("/")
 async def create_user(user: User, controller: Annotated[UserController, Depends()]):
     # Create a new user
     user_id = controller.create_user(user)
     return {"message": "User created successfully", "user_id": user_id}
 
-@router.get("/get/{user_id}")
+@router.get("/{user_id}")
 async def get_user(user_id: str, controller: Annotated[UserController, Depends()]):
     # Get user data
     user_data = controller.get_user(user_id)
@@ -21,7 +21,7 @@ async def get_user(user_id: str, controller: Annotated[UserController, Depends()
         return {"message": "User not found"}
     return user_data
 
-@router.get("/get")
+@router.get("/")
 async def get_users(controller: Annotated[UserController, Depends()]):
     # Get user data
     user_data = controller.get_users()

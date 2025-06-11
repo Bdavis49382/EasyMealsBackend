@@ -20,3 +20,10 @@ def household_ref() -> CollectionReference:
 
 def user_ref() -> CollectionReference:
     return db.collection('users')
+
+# Use these for end-to-end testing, as these collections are in the real database but are reserved for testing.
+def household_test_ref() -> CollectionReference:
+    return db.collection('test_household')
+
+def user_test_ref() -> CollectionReference:
+    return db.collection('test_user')
