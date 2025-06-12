@@ -28,6 +28,7 @@ def test_get_shopping_list_empty(client):
 
 def test_get_shopping_list(client, fake_header):
     # Arrange
+    app.dependency_overrides[get_user] = get_test_user_customized
     uid, header = fake_header
     response = client.post("shopping-list/",json={"name":"fake item", "user_id": uid}, headers=header)
 
