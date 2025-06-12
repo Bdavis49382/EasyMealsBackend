@@ -6,10 +6,16 @@ from models.Record import Record
 from controllers.householdController import HouseholdController
 from controllers.allRecipes import AllRecipes
 from uuid import uuid4
-from fastapi import UploadFile
+from fastapi import UploadFile, Depends
+from typing import Annotated
+from repositories.householdRepository import HouseholdRepository
+from repositories.userRepository import UserRepository
 import random
 
 class FeedController:
+    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()]):
+        self.repo = repo
+        self.user_repo = user_repo
     @staticmethod
     def add_recipe(user_id: str, recipe: Recipe):
         # Add a recipe to the user's feed
