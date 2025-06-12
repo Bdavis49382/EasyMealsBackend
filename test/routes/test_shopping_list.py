@@ -21,6 +21,7 @@ def test_get_shopping_list_empty(client):
     # Act
     response = client.get("shopping-list/", headers={"Authorization":"Bearer 1"})
 
+    print(response)
     # Assert
     assert response.status_code == 200
     assert len(response.json()) == 0

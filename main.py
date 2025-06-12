@@ -23,4 +23,5 @@ def global_handler(request: Request, exc: Exception):
     if isinstance(exc, IndexError):
         return JSONResponse(status_code=400, content={"message":"Index out of bounds. Try again with a different value."})
 
+    print(str(exc))
     raise HTTPException(status_code=500,detail=str(exc))
