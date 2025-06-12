@@ -12,6 +12,10 @@ def get_test_user_random() -> dict:
 def get_test_user_fixed() -> dict:
     return {'uid':'1', 'name':'Bob Testerman'}
 
+def get_test_user_customized(request: Request) -> dict:
+    auth_header = request.headers.get("Authorization")
+    return {'uid':auth_header.split(" ")[1], 'name':'Bob Testerman'}
+
 async def get_user(request: Request) -> dict:
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):

@@ -1,49 +1,61 @@
 from firebase import db
 from datetime import datetime, timezone, timedelta
 from google.cloud.firestore_v1 import ArrayUnion
-from models.Household import ShoppingItem
+from models.ShoppingItem import ShoppingItem, ShoppingItemOut
 from controllers.userController import UserController
 from controllers.menuController import MenuController
 from repositories.householdRepository import HouseholdRepository
+from repositories.userRepository import UserRepository
 from typing import Annotated
 from fastapi import Depends
 
 class ShoppingListController:
-    def get_shopping_list(household_id: str):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
-        return ShoppingListController.convertList(household_id, shopping_list)
+    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()]):
+        self.repo = repo
+        self.user_repo = user_repo
+
+    def get_shopping_list(self, household_id: str) -> list[ShoppingItemOut]:
+        shopping_list = self.repo.get_shopping_list(household_id)
+        return self.convert_list(household_id, shopping_list)
     
-    def convertList(household_id: str,shopping_list: list[dict]):
+    def convert_list(self,household_id: str, shopping_list: list[ShoppingItem]) -> list[ShoppingItemOut]:
         user_cache = {}
         recipe_cache = {}
+        out_list = []
         for item in shopping_list:
-            if item['user_id'] not in user_cache:
-                user = UserController.get_user(item['user_id'])
-                user_cache[item['user_id']] = user
+            if item.user_id not in user_cache:
+                user = self.user_repo.get_user(item.user_id)
+                user_cache[item.user_id] = user
             else:
-                user = user_cache[item['user_id']]
-            item['user_initial'] = user['full_name'][0]
+                user = user_cache[item.user_id]
+            user_initial = user.full_name[0]
 
-            if item['recipe_id'] is not None:
-                if item['recipe_id'] not in recipe_cache:
-                    recipe = MenuController.get_recipe(household_id, item['recipe_id'])
-                    recipe_cache[item['recipe_id']] = recipe
+            if item.recipe_id is not None:
+                if item.recipe_id not in recipe_cache:
+                    recipe = self.user_repo.find_user_recipe(self.repo.get_user_ids(household_id), item.recipe_id)
+                    recipe_cache[item.recipe_id] = recipe
                 else:
-                    recipe = recipe_cache[item['recipe_id']]
+                    recipe = recipe_cache[item.recipe_id]
 
                 if recipe is not None:
-                    item['recipe_title'] = recipe['title']
+                    recipe_title = recipe.title
                 else:
-                    item['recipe_title'] = ''
+                    recipe_title = recipe.title
             else:
-                item['recipe_title'] = ''
-        return shopping_list
+                recipe_title = ""
+            out_list.append(ShoppingItemOut(
+                name = item.name, 
+                checked=item.checked, 
+                time_checked=item.time_checked,
+                user_id = item.user_id,
+                user_initial= user_initial,
+                recipe_id= item.recipe_id,
+                recipe_title= recipe_title
+                ))
+        return out_list
 
-    def clean_list(household_id: str, household_repo: Annotated[HouseholdRepository, Depends()]):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
-        menu = household_repo.get_household(household_id).menu_recipes
+    def clean_list(self,household_id: str) -> None:
+        menu = self.repo.get_household(household_id).menu_recipes
         menu_ids = [x.recipe_id for x in menu]
 
         def item_is_valid(item):
@@ -54,66 +66,24 @@ class ShoppingListController:
             if 'recipe_id' in item and item['recipe_id'] != None and  item['recipe_id'] not in menu_ids:
                 return False
             return True
-        initial_size = len(shopping_list)
-        shopping_list = list(filter(item_is_valid, shopping_list))
-        if len(shopping_list) < initial_size:
-            ref.update({
-                "shopping_list": shopping_list
-            })
+        
+        self.repo.remove_items(household_id, item_is_valid)
+        
 
-    def add_item(household_id, shopping_item: ShoppingItem):
-        ref = db.collection('households').document(household_id)
-        res = ref.update({
-            "shopping_list": ArrayUnion([shopping_item.model_dump()])
-        })
-        return ShoppingListController.convertList(household_id,ref.get().to_dict()["shopping_list"])
+    def add_item(self, household_id, shopping_item: ShoppingItem) -> None:
+        self.repo.add_item(household_id, shopping_item)
     
-    def add_items(household_id, shopping_items: list[ShoppingItem]):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()['shopping_list']
-        shopping_list.extend(x.model_dump() for x in shopping_items)
-        ref.update({"shopping_list": shopping_list})
+    def add_items(self, household_id, shopping_items: list[ShoppingItem]) -> None:
+        self.repo.add_items(household_id, shopping_items)
 
-    def check_item(household_id : str, index: int):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
+    def check_item(self, household_id : str, index: int) -> None:
+        self.repo.check_item(household_id, index)
 
-        shopping_list[index]["checked"] = not shopping_list[index]["checked"]
+    def edit_item(self, household_id: str, index: int, shopping_item: ShoppingItem) -> None:
+        self.repo.update_item(household_id, index, shopping_item)
 
-        # track when the item was checked
-        if shopping_list[index]["checked"]:
-            shopping_list[index]["time_checked"] = datetime.now(timezone.utc)
-        else:
-            shopping_list[index]["time_checked"] = None
+    def remove_item(self, household_id: str, index: int) -> None:
+        self.repo.remove_item(household_id, index)
 
-        ref.update({
-            "shopping_list": shopping_list
-        })
-        return ShoppingListController.convertList(household_id,shopping_list)
-
-    def edit_item(household_id: str, index: int, shopping_item: ShoppingItem):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
-
-        assert index < len(shopping_list), "Index out of range"
-
-        shopping_list[index] = shopping_item.model_dump()
-        ref.update({
-            "shopping_list": shopping_list
-        })
-        return ShoppingListController.convertList(household_id, shopping_list)
-
-    def remove_item(household_id: str, index: int):
-        ref = db.collection('households').document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
-
-        assert index < len(shopping_list), "Index out of range"
-
-        shopping_list.pop(index)
-        ref.update({
-            "shopping_list": shopping_list
-        })
-        return ShoppingListController.convertList(household_id, shopping_list)
-
-    def wrap_items(item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
-        return [ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings]
+    def add_shopping_strings(self, household_id,item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
+        return self.add_items(household_id,[ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings])

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.responses import JSONResponse
 from models.Household import User
 from routes import shopping_list, household, feed, user, menu
 from typing_extensions import Annotated
@@ -19,4 +20,7 @@ app.include_router(menu.router)
 
 @app.exception_handler(Exception)
 def global_handler(request: Request, exc: Exception):
+    if isinstance(exc, IndexError):
+        return JSONResponse(status_code=400, content={"message":"Index out of bounds. Try again with a different value."})
+
     raise HTTPException(status_code=500,detail=str(exc))

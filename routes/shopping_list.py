@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request
-from models.Household import ShoppingItem
+from fastapi import APIRouter, Request, Depends
+from models.ShoppingItem import ShoppingItem, ShoppingItemOut
 from controllers.shoppingListController import ShoppingListController
+from typing import Annotated
 
 router = APIRouter(
     prefix="/shopping-list",
@@ -8,28 +9,28 @@ router = APIRouter(
 )
 
 @router.get("/")
-async def get_shopping_list(req: Request):
+async def get_shopping_list(req: Request, controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
     # removes any items that have been checked for more than 12 hours before returning the list
-    ShoppingListController.clean_list(req.state.household_id)
+    controller.clean_list(req.state.household_id)
 
-    return ShoppingListController.get_shopping_list(req.state.household_id)
+    return controller.get_shopping_list(req.state.household_id)
 
-@router.post("/add")
-async def add_item(req: Request, shopping_item: ShoppingItem):
-    updated_list = ShoppingListController.add_item(req.state.household_id, shopping_item)
-    return {"message": "Item added to shopping list","updated_list": updated_list}
+@router.post("/")
+async def add_item(req: Request, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.add_item(req.state.household_id, shopping_item)
+    return controller.get_shopping_list(req.state.household_id)
 
 @router.post("/check/{index}")
-async def check_item(req: Request, index: int):
-    updated_list = ShoppingListController.check_item(req.state.household_id, index)
-    return {"message": "Item checked in shopping list", "updated_list": updated_list}
+async def check_item(req: Request, index: int,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.check_item(req.state.household_id, index)
+    return controller.get_shopping_list(req.state.household_id)
 
-@router.put("/edit/{index}")
-async def edit_item(req: Request, index: int, shopping_item: ShoppingItem):
-    updated_list = ShoppingListController.edit_item(req.state.household_id, index, shopping_item)
-    return {"message": "Item edited in shopping list", "updated_list": updated_list}
+@router.put("/{index}")
+async def edit_item(req: Request, index: int, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.edit_item(req.state.household_id, index, shopping_item)
+    return controller.get_shopping_list(req.state.household_id)
 
-@router.delete("/remove/{index}")
-async def remove_item(req: Request, index: int):
-    updated_list = ShoppingListController.remove_item(req.state.household_id, index)
-    return {"message": "Item removed from shopping list", "updated_list": updated_list}
+@router.delete("/{index}")
+async def remove_item(req: Request, index: int,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.remove_item(req.state.household_id, index)
+    return controller.get_shopping_list(req.state.household_id)

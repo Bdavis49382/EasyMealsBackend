@@ -15,6 +15,23 @@ class Recipe(BaseModel):
     src_name: str | None = None
     ingredients: list[str]
     history: list[Record] = []
+    @staticmethod
+    def make_recipe_out(r: object, recipe_id: str):
+        return Recipe(
+            id=recipe_id,
+            title=r.title,
+            permissions_required =r.permissions_required,
+            instructions= r.instructions,
+            img_link= r.img_link,
+            author_id = r.author_id,
+            servings = r.servings,
+            time_estimate= r.time_estimate,
+            src_link = r.src_link,
+            src_name = r.src_name,
+            ingredients = r.ingredients,
+            history = r.history
+        )
+
 
 class MenuItem(BaseModel):
     note: str = ''

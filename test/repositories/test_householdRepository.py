@@ -92,6 +92,29 @@ def test_add_items(repo, mock_document, mock_snapshot, mock_household_dict, mock
     mock_document.update.assert_called_once()
     assert "fake shopping item" == mock_document.update.call_args[0][0]['shopping_list'][0]
 
+def test_remove_items_none_to_remove(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item_dict):
+    # Arrange
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+
+    # Act
+    repo.remove_items("1", lambda x: True)
+
+    # Assert
+    mock_document.update.assert_not_called()
+
+def test_remove_items(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item_dict):
+    # Arrange
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+
+    # Act
+    repo.remove_items("1", lambda x: False)
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'] == []
+
 def test_add_item(repo, mock_document, mock_shopping_item):
     # Arrange
 
@@ -193,7 +216,7 @@ def test_add_recipe_to_menu(repo, mock_document, mock_menu_item):
     mock_menu_item.model_dump.assert_called_once()
     mock_document.update.assert_called_once()
 
-def test_get_user_ids(repo, mock_snapshot, mock_household_dict, mock_menu_item_dict):
+def test_get_user_ids(repo, mock_snapshot, mock_household_dict):
     # Arrange
     mock_household_dict['owner_id'] = "1"
     mock_household_dict['users'] = ["2","3"]

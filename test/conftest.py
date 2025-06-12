@@ -10,6 +10,14 @@ from google.cloud.firestore_v1.collection import CollectionReference
 from google.cloud.firestore_v1.document import DocumentReference
 from google.cloud.firestore_v1.base_document import DocumentSnapshot
 from google.cloud.firestore_v1.query import Query
+from uuid import uuid4
+
+
+@fixture
+def fake_header():
+    uid = uuid4()
+    return uid.__str__(),{"Authorization":f"Bearer {uid.__str__()}"}
+
 
 @fixture
 def mock_user(mock_user_dict):
@@ -122,7 +130,13 @@ def mock_join_code():
 
 @fixture
 def mock_shopping_item():
-    return MagicMock(spec=ShoppingItem)
+    item = MagicMock(spec=ShoppingItem)
+    item.user_id = "1"
+    item.recipe_id = "1"
+    item.name = "Fake Item"
+    item.checked = False
+    item.time_checked = datetime(2000,1,1)
+    return item
 
 @fixture
 def mock_shopping_item_dict():

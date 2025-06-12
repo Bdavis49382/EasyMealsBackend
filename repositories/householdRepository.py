@@ -107,7 +107,6 @@ class HouseholdRepository:
         ref = self.household_ref.document(household_id)
         shopping_list = ref.get().to_dict()["shopping_list"]
 
-        assert index < len(shopping_list), "Index out of range"
 
         shopping_list[index] = item.model_dump()
         ref.update({
@@ -118,12 +117,21 @@ class HouseholdRepository:
         ref = self.household_ref.document(household_id)
         shopping_list = ref.get().to_dict()["shopping_list"]
 
-        assert index < len(shopping_list), "Index out of range"
-
         shopping_list.pop(index)
         ref.update({
             "shopping_list": shopping_list
         })
+    
+    def remove_items(self, household_id: str, valid_condition):
+        ref = self.household_ref.document(household_id)
+        shopping_list = ref.get().to_dict()['shopping_list']
+
+        initial_size = len(shopping_list)
+        shopping_list = list(filter(valid_condition, shopping_list))
+        if len(shopping_list) < initial_size:
+            ref.update({
+                "shopping_list": shopping_list
+            })
     
     def get_menu_items(self, household_id: str) -> list[MenuItem]:
         return self.get_household(household_id).menu_recipes

@@ -45,6 +45,15 @@ class UserRepository:
             f"recipes.{recipe_id}": recipe.model_dump()
         })
         return recipe_id
+    
+    def find_user_recipe(self, user_ids: list[str], recipe_id: str) -> RecipeOut | None:
+        users = self.get_users(user_ids)
+        user = [x for x in users if recipe_id in x.recipes.keys()]
+        if len(user) == 1:
+            return Recipe.make_recipe_out(user[0].recipes[recipe_id], recipe_id)
+        else:
+            return None
+
 
     def update_recipe(self, user_id: str, recipe_id: str, recipe: Recipe) -> str:
         self.user_ref.document(user_id).update({
