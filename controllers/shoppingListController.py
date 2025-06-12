@@ -26,7 +26,7 @@ class ShoppingListController:
             if item.user_id not in user_cache:
                 user = self.user_repo.get_user(item.user_id)
                 if user is None:
-                    raise Exception("unable to create user for " + item.user_id)
+                    raise Exception("unable to get user for " + item.user_id)
                 user_cache[item.user_id] = user
             else:
                 user = user_cache[item.user_id]

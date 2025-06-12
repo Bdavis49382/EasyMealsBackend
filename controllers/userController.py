@@ -9,6 +9,7 @@ class UserController:
         self.user_repo = user_repo
 
     def create_user(self, user: User):
+        print('creating',user)
         res = self.user_repo.create_user(user)
         return res
     
