@@ -12,8 +12,11 @@ def get_test_user_random() -> dict:
 def get_test_user_fixed() -> dict:
     return {'uid':'1', 'name':'Bob Testerman'}
 
-def get_test_user_customized(request: Request) -> dict:
+def get_test_user(request: Request) -> dict:
     auth_header = request.headers.get("Authorization")
+    if auth_header is None:
+        return {'uid':str(randint(1,500)),'name':f'Bob Testerman{randint(1,500)}'}
+
     return {'uid':auth_header.split(" ")[1], 'name':'Bob Testerman'}
 
 async def get_user(request: Request) -> dict:

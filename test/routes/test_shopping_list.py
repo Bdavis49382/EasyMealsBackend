@@ -1,5 +1,5 @@
 from main import app
-from auth import get_user, get_test_user_customized
+from auth import get_user, get_test_user
 from pytest import fixture, mark
 from firebase import user_test_ref as mock_ref, user_ref, household_ref, household_test_ref
 from fastapi.testclient import TestClient
@@ -8,7 +8,7 @@ from uuid import uuid4
 
 app.dependency_overrides[user_ref] = mock_ref
 app.dependency_overrides[household_ref] = household_test_ref
-app.dependency_overrides[get_user] = get_test_user_customized
+app.dependency_overrides[get_user] = get_test_user
 
 @fixture(scope="module")
 def client():
@@ -28,7 +28,7 @@ def test_get_shopping_list_empty(client):
 
 def test_get_shopping_list(client, fake_header):
     # Arrange
-    app.dependency_overrides[get_user] = get_test_user_customized
+    app.dependency_overrides[get_user] = get_test_user
     uid, header = fake_header
     response = client.post("shopping-list/",json={"name":"fake item", "user_id": uid}, headers=header)
 
