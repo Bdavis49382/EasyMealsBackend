@@ -1,4 +1,3 @@
-from firebase import db
 from models.User import UserLite, User
 from repositories.userRepository import UserRepository
 from typing import Annotated
@@ -9,7 +8,6 @@ class UserController:
         self.user_repo = user_repo
 
     def create_user(self, user: User):
-        print('creating',user)
         res = self.user_repo.create_user(user)
         return res
     

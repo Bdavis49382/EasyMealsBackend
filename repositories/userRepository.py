@@ -61,17 +61,17 @@ class UserRepository:
         })
         return recipe_id
     
-    def get_user_recipes(self, user_id: str) -> list[RecipeOut]:
+    def get_user_recipes(self, user_id: str) -> dict[str,RecipeOut]:
         user_data = self.user_ref.document(user_id).get().to_dict()
-        recipes = []
+        recipes = {}
         if user_data is not None and 'recipes' in user_data:
             for id, recipe in user_data['recipes'].items():
                 recipe['id'] = id
-                recipes.append(RecipeOut.model_validate(recipe))
+                recipes[id] = RecipeOut.model_validate(recipe)
         return recipes
     
     def search_user_recipes(self, user_id: str, keyword: str) -> list[RecipeOut]:
-        return [x for x in self.get_user_recipes(user_id) if keyword.upper() in x.title.upper()]
+        return [x for x in self.get_user_recipes(user_id).values() if keyword.upper() in x.title.upper()]
     
     def add_recipe_record(self, user_id: str, recipe_id: str, record: Record) -> None:
         res = self.user_ref.document(user_id).update({

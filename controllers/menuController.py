@@ -1,51 +1,68 @@
-from firebase import db
 from datetime import datetime, timezone, timedelta
-from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove
+from fastapi import Depends, HTTPException
 from models.Household import MenuItem
 from models.Record import Record
-from models.Recipe import Recipe
-from controllers.householdController import HouseholdController
+from models.Recipe import Recipe, MenuItemLite, RecipeOut, RecipeLite, MenuRecipe
 from controllers.allRecipes import AllRecipes
+from typing import Annotated
+from repositories.householdRepository import HouseholdRepository
+from repositories.userRepository import UserRepository
 
 class MenuController:
-    @staticmethod
-    def add_recipe(household_id, menu_item: MenuItem):
-        household_ref = db.collection('households').document(household_id)
-        household_ref.update({
-            "menu_recipes": ArrayUnion([menu_item.model_dump()])
-        })
-        return MenuController.get_menu(household_id)
+    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()]):
+        self.repo = repo
+        self.user_repo = user_repo
 
+    def add_recipe(self, household_id, menu_item: MenuItem, user_id: str):
+        # save the recipe first before adding it to the menu
+        if menu_item.recipe_id is None:
+            if menu_item.recipe is None:
+                raise HTTPException(status_code=422, detail="either recipe or recipe_id is required to add recipe")
+            menu_item.recipe.author_id = user_id
+            recipe_id = self.user_repo.add_recipe(user_id, menu_item.recipe)
+            menu_item.recipe_id = recipe_id
+            menu_item.recipe = None
+        self.repo.add_recipe_to_menu(household_id, menu_item)
+    
+    def get_menu(self, household_id: str) -> list[MenuItemLite]:
+        menu = self.repo.get_menu_items(household_id)
+        out_list = []
+        recipes = self._get_household_recipes(household_id)
 
-    @staticmethod
-    def get_menu(household_id: str) -> list:
-        menu = HouseholdController.get_household(household_id)['menu_recipes']
         for menu_item in menu:
-            recipe = MenuController.get_recipe(household_id, menu_item['recipe_id'])
-            if recipe is not None:
-                menu_item['img_link'] = recipe['img_link']
-                menu_item['title'] = recipe['title']
-        return menu
+            if menu_item.recipe_id in recipes:
+                recipe = recipes[menu_item.recipe_id]
+                out_list.append(MenuItem.get_menu_item_lite(menu_item, recipe.img_link, recipe.title))
+
+        return out_list
     
-    @staticmethod
-    def get_menu_item(household_id: str, index: int):
-        menu = HouseholdController.get_household(household_id)['menu_recipes']
-        assert index < len(menu), "Invalid index for menu item"
-        menu[index]['recipe'] = MenuController.get_recipe(household_id, menu[index]['recipe_id'])
-        return menu[index]
+    def get_menu_item(self, household_id: str, index: int) -> MenuRecipe:
+        menu_item = self.repo.get_menu_items(household_id)[index]
+
+        recipe = self.get_recipe(household_id, menu_item.recipe_id)
+        menu_recipe = MenuRecipe.model_validate(recipe.model_dump())
+        menu_recipe.note = menu_item.note
+        menu_recipe.date = menu_item.date
+        menu_recipe.recipe_id = menu_item.recipe_id
+        return menu_recipe
+
+    def _get_household_recipes(self, household_id: str) -> dict[str,RecipeLite]:
+        recipes = {}
+        for user_id in self.repo.get_user_ids(household_id):
+            recipes.update(self.user_repo.get_user_recipes(user_id))
+
+        for recipe_id in recipes.keys():
+            recipes[recipe_id] = RecipeLite.make_from_full(recipes[recipe_id])
+        return recipes
+        
+    def get_recipe(self, household_id: str, recipe_id: str) -> RecipeOut | None:
+        for user_id in self.repo.get_user_ids(household_id):
+            recipes = self.user_repo.get_user_recipes(user_id)
+            if recipe_id in recipes:
+                return recipes[recipe_id]
+        return None
     
-    @staticmethod
-    def get_recipe(household_id: str, recipe_id: str):
-        household = HouseholdController.get_household(household_id)
-        for user_id in [household['owner_id'],*household['users']]:
-            user = db.collection('users').document(user_id).get().to_dict()
-                
-            if user is not None and recipe_id is not None and recipe_id in user['recipes']:
-                user['recipes'][recipe_id]['id'] = recipe_id
-                return user['recipes'][recipe_id]
-    
-    @staticmethod
-    def get_recipe_online(link: str):
+    def get_recipe_online(self, link: str) -> Recipe:
         raw_recipe = AllRecipes.get(link)
         if len(raw_recipe.failures):
             print('failed to retrieve these items, potentially outdated html info:',raw_recipe.failures)
@@ -60,20 +77,10 @@ class MenuController:
             time_estimate=[raw_recipe.total_time, raw_recipe.prep_time, raw_recipe.cook_time])
         return recipe
     
-    @staticmethod
-    def finish_recipe(household_id: str, recipe_id: str, user_id : str, rating: int | None = None):
-        menu = MenuController.get_menu(household_id)
-
+    def finish_recipe(self, household_id: str, recipe_id: str, user_id : str, rating: int | None = None) -> None:
         # remove from menu
-        menu = [x for x in menu if x['recipe_id'] != recipe_id]
-        db.collection('households').document(household_id).update({
-            "menu_recipes" : menu
-        })
+        self.repo.remove_menu_item(household_id, recipe_id)
 
         #add a record for this interaction
         record = Record(household_id=household_id,timestamp=datetime.now(timezone.utc), rating = rating)
-
-        res = db.collection('users').document(user_id).update({
-            f"recipes.{recipe_id}.history" : ArrayUnion([record.model_dump()])
-        })
-        return MenuController.get_menu(household_id)
+        self.user_repo.add_recipe_record(user_id, recipe_id, record)

@@ -1,57 +1,48 @@
-from fastapi import APIRouter, Request, HTTPException
-from models.Household import MenuItem, ActiveItems
-from models.Recipe import Recipe
+from fastapi import APIRouter, Request, HTTPException, Depends
+from models.Household import ActiveItems
+from models.Recipe import Recipe, MenuItem, MenuItemLite, RecipeOut
 from datetime import datetime
 from controllers.menuController import MenuController
-from controllers.feedController import FeedController
 from controllers.shoppingListController import ShoppingListController
+from typing import Annotated
 
 router = APIRouter(
     prefix="/menu",
     tags= ["Menu"]
 )
 
-@router.get('/get')
-async def get_menu(request: Request):
-    return MenuController.get_menu(request.state.household_id)
+@router.get('/')
+async def get_menu(request: Request, controller: Annotated[MenuController, Depends()]) -> list[MenuItemLite]:
+    return controller.get_menu(request.state.household_id)
 
-@router.post('/add/{user_id}', description="Either a recipe or recipe_id MUST be present in provided menu_item")
-async def add_recipe(request: Request, menu_item: MenuItem, user_id : str):
-    if menu_item.recipe_id is None:
-        if menu_item.recipe is None:
-            raise HTTPException(status_code=422, detail="either recipe or recipe_id is required to add recipe")
-        recipe_id = FeedController.add_recipe(user_id, menu_item.recipe)
-        menu_item.recipe_id = recipe_id
-        menu_item.recipe = None
-    res = MenuController.add_recipe(request.state.household_id, menu_item)
+@router.post('/', description="Either a recipe or recipe_id MUST be present in provided menu_item")
+async def add_recipe(request: Request, 
+        menu_item: MenuItem, 
+        controller: Annotated[MenuController, Depends()],
+        shopping_list_controller: Annotated[ShoppingListController, Depends()]) -> list[MenuItemLite]:
+
+    controller.add_recipe(request.state.household_id, menu_item, request.state.user_id)
+
+    shopping_list_controller.add_shopping_strings(request.state.household_id, menu_item.active_items, request.state.user_id, menu_item.recipe_id)
+
+    return controller.get_menu(request.state.household_id)
+
+@router.get("/recipes/{recipe_id}")
+async def get_recipe(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()]) -> RecipeOut:
+    res = controller.get_recipe(request.state.household_id, recipe_id)
     if res is None:
-        return {"message":"failed"}
-    shoppingRes = ShoppingListController.add_shopping_strings(request.state.household_id, menu_item.active_items, user_id, menu_item.recipe_id)
+        raise HTTPException(404, detail= "Recipe was not found or you do not have permission to access it. Is the user who owns this recipe in your household?")
     return res
 
-@router.get("/get/recipe")
-async def get_recipe(request: Request, recipe_id: str):
-    res = MenuController.get_recipe(request.state.household_id, recipe_id)
-    return res
+@router.get("/index/{index}")
+async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]):
+    return controller.get_menu_item(request.state.household_id, int(index))
 
-@router.get("/get/recipe/{index}")
-async def get_recipe_by_index(request: Request, index: str):
-    res = MenuController.get_menu_item(request.state.household_id, int(index))
-    if res is None:
-        return {"message": "failed to retrieve by that index"}
-    return res
+@router.get('/online')
+async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]):
+    return controller.get_recipe_online(link)
 
-@router.get('/get/recipe-online')
-async def get_recipe_online(link:str):
-    res = MenuController.get_recipe_online(link)
-    if res is None:
-        return {"message":"failed to retrieve recipe at that link"}
-    return res
-
-
-@router.post('/finish')
-async def finish_meal(request: Request, recipe_id: str, user_id: str, rating: float | None = None):
-    response = MenuController.finish_recipe(request.state.household_id, recipe_id, user_id, rating)
-    if response is None:
-        return {"message": "failed"}
-    return response
+@router.post('/finish/{recipe_id}')
+async def finish_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None):
+    controller.finish_recipe(request.state.household_id, recipe_id, request.state.user_id, rating)
+    return controller.get_menu(request.state.household_id)

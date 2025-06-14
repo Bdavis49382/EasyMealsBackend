@@ -150,7 +150,13 @@ def mock_shopping_item_dict():
 
 @fixture
 def mock_menu_item():
-    return MagicMock(spec=MenuItem)
+    menu_item = MagicMock(spec=MenuItem)
+    menu_item.note = ""
+    menu_item.date = None
+    menu_item.recipe_id = ""
+    menu_item.img_link = ""
+    menu_item.title = ""
+    return menu_item
 
 @fixture
 def mock_menu_item_dict(mock_recipe_dict):

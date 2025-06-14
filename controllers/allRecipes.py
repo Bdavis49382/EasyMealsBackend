@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from models.Recipe import RecipeLite
 
 import urllib.parse
 import urllib.request
@@ -21,7 +22,7 @@ class AllRecipes():
         return BeautifulSoup(html_content, 'html.parser')
 
     @staticmethod
-    def get_recipes_from_page(url: str, card_class: str):
+    def get_recipes_from_page(url: str, card_class: str) -> list[RecipeLite]:
         """
         Find all recipes on the page
         """
@@ -30,12 +31,12 @@ class AllRecipes():
         except:
             return []
 
-        articles = soup.findAll("a", {"class": card_class})
+        articles = soup.find_all("a", {"class": card_class})
 
-        return [dict(RecipeCard(a)) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
+        return [RecipeCard(a).get_recipe_lite() for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
     @staticmethod
-    def search(search_string):
+    def search(search_string) -> list[RecipeLite]:
         """
         Search recipes parsing the returned html data.
         """
@@ -47,7 +48,7 @@ class AllRecipes():
         return AllRecipes.get_recipes_from_page(url,  "mntl-card-list-card--extendable")
     
     @staticmethod
-    def get_main_dishes():
+    def get_main_dishes() -> list[RecipeLite]:
         return AllRecipes.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card')
 
     @staticmethod
@@ -83,11 +84,8 @@ class RecipeCard(BaseRecipe):
         self.rate = self.try_find(self._get_rate, 'rate', None)
         self.img_link = self.try_find(self.get_img_link,'img_link', None)
     
-    def __iter__(self):
-        yield 'title',self.title
-        yield 'src_link',self.src_link
-        yield 'rate',self.rate
-        yield 'img_link',self.img_link
+    def get_recipe_lite(self) -> RecipeLite:
+        return RecipeLite(src_link=self.src_link,title = self.title, img_link=self.img_link, rate=self.rate)
         
     def _get_title(self):
         return self.soup.find("span", {"class": "card__title"}).get_text().strip(' \t\n\r')

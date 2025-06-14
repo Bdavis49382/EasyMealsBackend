@@ -35,7 +35,6 @@ async def provide_household_id(request: Request, user_controller: Annotated[User
         uid = user['uid']
         request.state.user_id = uid
         user_info = user_controller.get_user(uid)
-        print(user_info)
         if user_info == None:
             res = user_controller.create_user(User(full_name=user['name'],google_id=uid))
             if res == None:

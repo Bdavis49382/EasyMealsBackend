@@ -109,17 +109,18 @@ def test_get_user_recipes_empty(user_repo, mock_snapshot, mock_user_dict):
 def test_get_user_recipes(user_repo, mock_snapshot, mock_user_dict, mock_recipe_dict):
     # Arrange
     mock_snapshot.to_dict.return_value = mock_user_dict
+    mock_user_dict["recipes"] = {"10": mock_recipe_dict}
     
 
     # Act
-    result: list[RecipeOut] = user_repo.get_user_recipes("1")
+    result: dict[str,RecipeOut] = user_repo.get_user_recipes("1")
 
     # Assert
     mock_snapshot.to_dict.assert_called_once()
     assert len(result) == 1
     # the result should be the same recipe we entered in the "database"
-    assert result[0].model_dump() == mock_recipe_dict
-    assert result[0].id == "fake_id"
+    assert result['10'].model_dump() == mock_recipe_dict
+    assert result['10'].id == "10"
 
 @mark.parametrize("test_input, expected", [( "fake", 1 ), ( "FAKE", 1), ("f",1), ("Flake", 0)])
 def test_search_user_recipes(user_repo, mock_snapshot, mock_user_dict, mock_recipe_dict, test_input, expected):

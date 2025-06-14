@@ -1,9 +1,6 @@
-from firebase import db
 from datetime import datetime, timezone, timedelta
-from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove, FieldFilter, Or
 from models.Household import Household, JoinCode
 from models.User import User, UserLite
-from controllers.userController import UserController
 from typing import Annotated
 from fastapi import Depends
 from repositories.householdRepository import HouseholdRepository

@@ -1,9 +1,5 @@
-from firebase import db
 from datetime import datetime, timezone, timedelta
-from google.cloud.firestore_v1 import ArrayUnion
 from models.ShoppingItem import ShoppingItem, ShoppingItemOut
-from controllers.userController import UserController
-from controllers.menuController import MenuController
 from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
 from typing import Annotated
@@ -87,5 +83,5 @@ class ShoppingListController:
     def remove_item(self, household_id: str, index: int) -> None:
         self.repo.remove_item(household_id, index)
 
-    def add_shopping_strings(self, household_id,item_strings: list[str], user_id: str, recipe_id: str) -> list[ShoppingItem]:
-        return self.add_items(household_id,[ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings])
+    def add_shopping_strings(self, household_id,item_strings: list[str], user_id: str, recipe_id: str) -> None:
+        self.add_items(household_id,[ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings])

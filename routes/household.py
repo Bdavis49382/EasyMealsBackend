@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException
 from controllers.householdController import HouseholdController
 from controllers.userController import UserController
+from models.User import UserLite
 from typing import Annotated
 
 router = APIRouter(
@@ -31,10 +32,10 @@ async def join_household(user_id: str, code: str, controller: Annotated[Househol
     return new_users
 
 @router.delete("/kick/{user_id}")
-async def kick_user(request: Request, user_id: str, controller: Annotated[HouseholdController, Depends()]):
+async def kick_user(request: Request, user_id: str, controller: Annotated[HouseholdController, Depends()]) -> list[UserLite]:
     if request.state.user_id != controller.get_household(request.state.household_id).owner_id:
-        return {"message": "Only admin can kick other users"}
+        raise HTTPException(status_code=401, detail="Only admin can kick other users")
     new_users = controller.kick_user(request.state.household_id, user_id)
     if new_users is None:
-        return {"message": "household removed or user not found"}
+        raise HTTPException(status_code=404, detail="user to kick not found.")
     return new_users

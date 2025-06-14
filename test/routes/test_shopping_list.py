@@ -3,7 +3,6 @@ from auth import get_user, get_test_user
 from pytest import fixture, mark
 from firebase import user_test_ref as mock_ref, user_ref, household_ref, household_test_ref
 from fastapi.testclient import TestClient
-from uuid import uuid4
 
 
 app.dependency_overrides[user_ref] = mock_ref
@@ -21,7 +20,6 @@ def test_get_shopping_list_empty(client):
     # Act
     response = client.get("shopping-list/", headers={"Authorization":"Bearer 1"})
 
-    print(response)
     # Assert
     assert response.status_code == 200
     assert len(response.json()) == 0

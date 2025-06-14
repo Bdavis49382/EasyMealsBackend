@@ -40,13 +40,22 @@ class MenuItem(BaseModel):
     # Should have either recipe_id or recipe
     recipe_id: str | None = None
     recipe: Recipe | None = None
+    @staticmethod
+    def get_menu_item_lite(menu_item: object, img_link: str, title: str):
+        return MenuItemLite(
+            note = menu_item.note,
+            date = menu_item.date,
+            recipe_id= menu_item.recipe_id,
+            img_link=img_link,
+            title=title
+        )
 
-class MenuItemOut(BaseModel):
+class MenuItemLite(BaseModel):
     note: str
     date: datetime | None
-    active_items: list[str]
-    recipe: Recipe
-
+    recipe_id: str
+    img_link: str
+    title: str
 
 class RecipeOut(BaseModel):
     # when coming out, recipe should have an id
@@ -63,7 +72,28 @@ class RecipeOut(BaseModel):
     ingredients: list[str]
     history: list[Record]
 
+class RecipeLite(BaseModel):
+    # Either an id or src_link is required to be able to retrieve the full recipe.
+    id: str | None = None
+    src_link: str | None = None
+    history: list[Record] = []
+    title: str
+    img_link: str
+    rate: float | None = None
+    score: float | None = None
+    @staticmethod
+    def make_from_full(recipe: object):
+        return RecipeLite(id=recipe.id, 
+                          src_link = recipe.src_link, 
+                          title = recipe.title, 
+                          img_link= recipe.img_link,
+                          history=recipe.history
+                          )
 
+class MenuRecipe(Recipe):
+    note: str | None = None
+    date: datetime | None = None
+    recipe_id: str | None = None
 
 # example
 # {
