@@ -52,7 +52,7 @@ class MenuItem(BaseModel):
 
 class MenuItemLite(BaseModel):
     note: str
-    date: datetime | None
+    date: datetime | None = None
     recipe_id: str
     img_link: str
     title: str
@@ -90,10 +90,6 @@ class RecipeLite(BaseModel):
                           history=recipe.history
                           )
 
-class MenuRecipe(Recipe):
-    note: str | None = None
-    date: datetime | None = None
-    recipe_id: str | None = None
 
 # example
 # {

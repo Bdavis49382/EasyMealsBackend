@@ -35,14 +35,14 @@ async def get_recipe(request: Request, recipe_id: str, controller: Annotated[Men
     return res
 
 @router.get("/index/{index}")
-async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]):
+async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]) -> MenuItem:
     return controller.get_menu_item(request.state.household_id, int(index))
 
 @router.get('/online')
-async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]):
+async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]) -> Recipe:
     return controller.get_recipe_online(link)
 
 @router.post('/finish/{recipe_id}')
-async def finish_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None):
+async def finish_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None) -> list[MenuItemLite]:
     controller.finish_recipe(request.state.household_id, recipe_id, request.state.user_id, rating)
     return controller.get_menu(request.state.household_id)

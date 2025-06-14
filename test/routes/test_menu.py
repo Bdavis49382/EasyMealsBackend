@@ -98,8 +98,8 @@ def test_get_recipe_by_index(client, fake_header, mock_menu_item_dict, mock_reci
     assert menu_item['date'] == mock_menu_item_dict['date']
     # Check that it saved and used data from the mock_recipe
     assert menu_item['recipe_id'] is not None
-    assert menu_item['img_link'] == mock_recipe_dict['img_link']
-    assert menu_item['title'] == mock_recipe_dict['title']
+    assert menu_item['recipe']['img_link'] == mock_recipe_dict['img_link']
+    assert menu_item['recipe']['title'] == mock_recipe_dict['title']
 
 def test_finish_meal(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
     # Arrange

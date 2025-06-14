@@ -71,8 +71,8 @@ def test_get_menu_item(menu_controller,mock_household_repo, mock_menu_item, mock
 
     # Assert
     assert result.recipe_id == "10"
-    assert result.img_link == mock_recipe.img_link
-    assert result.title == mock_recipe.title
+    assert result.recipe.img_link == mock_recipe.img_link
+    assert result.recipe.title == mock_recipe.title
     assert result.note == mock_menu_item.note
     assert result.date == mock_menu_item.date
 
