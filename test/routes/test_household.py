@@ -48,7 +48,7 @@ def test_join_household(client, fake_header):
     code = response.json()
 
     # Act
-    response = client.get(f"/household/join/1/{code}", headers = {"Authorization": "Bearer 1"})
+    response = client.get(f"/household/join/{code}", headers = {"Authorization": "Bearer 1"})
 
     # Assert
     assert response.status_code == 200
@@ -61,7 +61,7 @@ def test_kick_user_not_allowed(client, fake_header):
     code = response.json()
 
     uid, header = fake_header
-    response = client.get(f"/household/join/{uid}/{code}", headers= header)
+    response = client.get(f"/household/join/{code}", headers= header)
 
     # Act
     response = client.delete("/household/kick/101", headers= header)
@@ -75,7 +75,7 @@ def test_kick_user(client, fake_header):
     response = client.get("/household/code", headers = header)
     code = response.json()
 
-    response = client.get(f"/household/join/1/{code}", headers={"Authorization": "Bearer 1"} )
+    response = client.get(f"/household/join/{code}", headers={"Authorization": "Bearer 1"} )
 
     # Act
     response = client.delete("/household/kick/1", headers= header)
