@@ -24,9 +24,9 @@ async def get_household_code(request: Request, controller: Annotated[HouseholdCo
     code = controller.get_join_code(request.state.household_id)
     return code.code
 
-@router.get("/join/{user_id}/{code}")
-async def join_household(user_id: str, code: str, controller: Annotated[HouseholdController, Depends()]):
-    new_users = controller.join_household(user_id, code)
+@router.get("/join/{code}")
+async def join_household(request: Request, code: str, controller: Annotated[HouseholdController, Depends()]):
+    new_users = controller.join_household(request.state.user_id, code)
     if new_users is None:
         return {"message": "Invalid household ID or code"}
     return new_users
