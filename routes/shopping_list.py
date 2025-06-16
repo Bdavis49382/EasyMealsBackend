@@ -17,6 +17,8 @@ async def get_shopping_list(req: Request, controller: Annotated[ShoppingListCont
 
 @router.post("/")
 async def add_item(req: Request, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    if shopping_item.user_id == None:
+        shopping_item.user_id = req.state.user_id
     controller.add_item(req.state.household_id, shopping_item)
     return controller.get_shopping_list(req.state.household_id)
 
