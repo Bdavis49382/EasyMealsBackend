@@ -33,22 +33,6 @@ class Recipe(BaseModel):
         )
 
 
-class MenuItem(BaseModel):
-    note: str = ''
-    date: datetime | None = None
-    active_items: list[str]
-    # Should have either recipe_id or recipe
-    recipe_id: str | None = None
-    recipe: Recipe | None = None
-    @staticmethod
-    def get_menu_item_lite(menu_item: object, img_link: str, title: str):
-        return MenuItemLite(
-            note = menu_item.note,
-            date = menu_item.date,
-            recipe_id= menu_item.recipe_id,
-            img_link=img_link,
-            title=title
-        )
 
 class MenuItemLite(BaseModel):
     note: str
@@ -90,6 +74,22 @@ class RecipeLite(BaseModel):
                           history=recipe.history
                           )
 
+class MenuItem(BaseModel):
+    note: str = ''
+    date: datetime | None = None
+    active_items: list[str]
+    # Should have either recipe_id or recipe
+    recipe_id: str | None = None
+    recipe: RecipeOut | None = None
+    @staticmethod
+    def get_menu_item_lite(menu_item: object, img_link: str, title: str):
+        return MenuItemLite(
+            note = menu_item.note,
+            date = menu_item.date,
+            recipe_id= menu_item.recipe_id,
+            img_link=img_link,
+            title=title
+        )
 
 # example
 # {

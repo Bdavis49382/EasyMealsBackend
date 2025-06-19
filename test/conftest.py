@@ -83,6 +83,7 @@ def mock_recipe(mock_recipe_dict):
 @fixture
 def mock_recipe_dict():
     return {
+        "id":"junk",
         "title": "fake recipe",
         "permissions_required":"household",
         "instructions": [],

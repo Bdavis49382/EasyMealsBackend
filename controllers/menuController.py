@@ -56,7 +56,6 @@ class MenuController:
         for user_id in self.repo.get_user_ids(household_id):
             recipes = self.user_repo.get_user_recipes(user_id)
             if recipe_id in recipes:
-                recipes[recipe_id].id = recipe_id
                 return recipes[recipe_id]
         return None
     
