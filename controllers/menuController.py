@@ -1,8 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import Depends, HTTPException
-from models.Household import MenuItem
 from models.Record import Record
-from models.Recipe import Recipe, MenuItemLite, RecipeOut, RecipeLite
+from models.Recipe import Recipe, MenuItemLite, RecipeOut, RecipeLite, MenuItemOut, MenuItem
 from controllers.allRecipes import AllRecipes
 from typing import Annotated
 from repositories.householdRepository import HouseholdRepository
@@ -36,9 +35,9 @@ class MenuController:
 
         return out_list
     
-    def get_menu_item(self, household_id: str, index: int) -> MenuItem:
+    def get_menu_item(self, household_id: str, index: int) -> MenuItemOut:
         menu_item = self.repo.get_menu_items(household_id)[index]
-
+        menu_item = MenuItemOut.model_validate(menu_item.model_dump())
         recipe = self.get_recipe(household_id, menu_item.recipe_id)
         menu_item.recipe = recipe
         return menu_item

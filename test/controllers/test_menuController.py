@@ -57,9 +57,11 @@ def test_get_menu_recipes_not_found(menu_controller,mock_household_repo, mock_me
     # Assert
     assert len(result) == 0
 
-def test_get_menu_item(menu_controller,mock_household_repo, mock_menu_item, mock_recipe, mock_user_repo):
+def test_get_menu_item(menu_controller,mock_household_repo, mock_menu_item, mock_recipe, mock_user_repo, mock_menu_item_dict, mock_recipe_dict):
     # Arrange
     mock_menu_item.recipe_id = "10"
+    mock_menu_item.model_dump.return_value = mock_menu_item_dict
+    mock_menu_item_dict['recipe_id'] = '10'
 
     mock_household_repo.get_menu_items.return_value = [mock_menu_item]
     mock_household_repo.get_user_ids.return_value = ["1"]

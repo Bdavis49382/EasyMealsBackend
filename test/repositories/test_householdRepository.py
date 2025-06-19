@@ -188,6 +188,7 @@ def test_get_menu_items(repo, mock_snapshot, mock_household_dict, mock_menu_item
     # Arrange
     mock_household_dict['menu_recipes'] = [mock_menu_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
+    del mock_menu_item_dict['recipe']['id']
 
     # Act
     menu_items: list = repo.get_menu_items("1")
@@ -199,6 +200,7 @@ def test_get_menu_item_by_index(repo, mock_snapshot, mock_household_dict, mock_m
     # Arrange
     mock_household_dict['menu_recipes'] = [mock_menu_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
+    del mock_menu_item_dict['recipe']['id']
 
     # Act
     menu_item = repo.get_menu_item_by_index("1",0)

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
 from models.Household import ActiveItems
-from models.Recipe import Recipe, MenuItem, MenuItemLite, RecipeOut
+from models.Recipe import Recipe, MenuItem, MenuItemLite, RecipeOut, MenuItemOut
 from datetime import datetime
 from controllers.menuController import MenuController
 from controllers.shoppingListController import ShoppingListController
@@ -35,7 +35,7 @@ async def get_recipe(request: Request, recipe_id: str, controller: Annotated[Men
     return res
 
 @router.get("/index/{index}")
-async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]) -> MenuItem:
+async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
     return controller.get_menu_item(request.state.household_id, int(index))
 
 @router.get('/online')
