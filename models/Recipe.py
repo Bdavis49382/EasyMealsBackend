@@ -43,7 +43,7 @@ class MenuItemLite(BaseModel):
 
 class RecipeOut(BaseModel):
     # when coming out, recipe should have an id
-    id: str
+    id: str | None = None
     title: str
     permissions_required: str
     instructions: list[str]
