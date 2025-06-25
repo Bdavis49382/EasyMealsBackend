@@ -77,7 +77,7 @@ class RecipeLite(BaseModel):
 class MenuItem(BaseModel):
     note: str = ''
     date: datetime | None = None
-    active_items: list[str]
+    active_items: list[str] = []
     # Should have either recipe_id or recipe
     recipe_id: str | None = None
     recipe: Recipe | None = None

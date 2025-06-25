@@ -130,12 +130,19 @@ def test_finish_recipe(menu_controller,mock_household_repo, mock_recipe, mock_us
     mock_household_repo.remove_menu_item.assert_called_once()
     mock_user_repo.add_recipe_record.assert_called_once()
 
-def test_finish_recipe_no_rating(menu_controller,mock_household_repo, mock_recipe, mock_user_repo):
+def test_finish_recipe_no_rating(menu_controller,mock_household_repo, mock_user_repo):
     # Arrange
 
     # Act
-    result = menu_controller.finish_recipe("1","10","1")
+    menu_controller.finish_recipe("1","10","1")
 
     # Assert
     mock_household_repo.remove_menu_item.assert_called_once()
     mock_user_repo.add_recipe_record.assert_called_once()
+
+def test_update_menu_item(menu_controller, mock_household_repo, mock_menu_item):
+    #Act
+    menu_controller.update_menu_item("1", 0, mock_menu_item)
+
+    #Assert
+    mock_household_repo.update_menu_item.assert_called_once()

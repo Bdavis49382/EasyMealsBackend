@@ -80,3 +80,6 @@ class MenuController:
         #add a record for this interaction
         record = Record(household_id=household_id,timestamp=datetime.now(timezone.utc), rating = rating)
         self.user_repo.add_recipe_record(user_id, recipe_id, record)
+
+    def update_menu_item(self, household_id: str, index: int, updated: MenuItem) -> None:
+        self.repo.update_menu_item(household_id, index, updated)

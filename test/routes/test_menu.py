@@ -1,8 +1,11 @@
 from main import app
 from auth import get_user, get_test_user
 from pytest import fixture, mark
+from datetime import datetime
+import json
 from firebase import user_test_ref as mock_ref, user_ref, household_ref, household_test_ref
 from fastapi.testclient import TestClient
+from models.Recipe import MenuItemLite, MenuItemOut
 
 
 app.dependency_overrides[user_ref] = mock_ref
@@ -120,3 +123,24 @@ def test_finish_meal(client, fake_header, mock_menu_item_dict, mock_recipe_dict)
     assert response2.status_code == 200
     assert len(response2.json()) == 0
     
+def test_patch_recipe_by_index(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
+    # Arrange
+    uid, header = fake_header
+    mock_menu_item_dict["recipe_id"] = None
+
+    # Act
+    response1 = client.post(f"menu/", headers=header, json=mock_menu_item_dict)
+    assert response1.status_code == 200
+    assert len(response1.json()) == 1
+
+    updated = MenuItemLite.model_validate(response1.json()[0])
+    updated.note = 'new note'
+    updated.date = datetime(2000,1,1)
+    response2 = client.patch(f"menu/index/0", headers=header, json= json.loads(updated.model_dump_json()))
+    print(response2.json())
+    # Assert
+
+    assert response2.status_code == 200
+    menu_item = MenuItemOut.model_validate(response2.json())
+    assert menu_item.note == 'new note'
+    assert menu_item.date.date() == datetime(2000,1,1).date()
