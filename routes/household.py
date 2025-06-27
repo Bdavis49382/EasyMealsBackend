@@ -28,7 +28,7 @@ async def get_household_code(request: Request, controller: Annotated[HouseholdCo
 async def join_household(request: Request, code: str, controller: Annotated[HouseholdController, Depends()]):
     new_users = controller.join_household(request.state.user_id, code)
     if new_users is None:
-        return {"message": "Invalid household ID or code"}
+        raise HTTPException(status_code=400, detail= "Invalid household ID or code")
     return new_users
 
 @router.delete("/kick/{user_id}")
