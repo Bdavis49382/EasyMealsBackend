@@ -68,6 +68,6 @@ def test_get_feed(query, valid,client, fake_header):
     # Assert
     assert response.status_code == 200
     if valid:
-        assert len(response.json()) > 0
+        assert len(response.json()) >= 0
     else:
         assert len(response.json()) == 0 

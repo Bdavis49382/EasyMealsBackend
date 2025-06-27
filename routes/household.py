@@ -33,7 +33,7 @@ async def join_household(request: Request, code: str, controller: Annotated[Hous
 
 @router.delete("/kick/{user_id}")
 async def kick_user(request: Request, user_id: str, controller: Annotated[HouseholdController, Depends()]) -> list[UserLite]:
-    if request.state.user_id != controller.get_household(request.state.household_id).owner_id:
+    if request.state.user_id != controller.get_household(request.state.household_id).owner_id and request.state.user_id != user_id:
         raise HTTPException(status_code=401, detail="Only admin can kick other users")
     new_users = controller.kick_user(request.state.household_id, user_id)
     if new_users is None:
