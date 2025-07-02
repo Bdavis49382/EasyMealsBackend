@@ -66,6 +66,7 @@ def mock_user_dict(mock_recipe_dict):
 def mock_recipe(mock_recipe_dict):
     mock_recipe = MagicMock(spec=Recipe)
     mock_recipe.title= "fake recipe"
+    mock_recipe.tags = []
     mock_recipe.permissions_required = "household"
     mock_recipe.instructions = []
     mock_recipe.img_link = ""
@@ -84,6 +85,7 @@ def mock_recipe(mock_recipe_dict):
 def mock_recipe_dict():
     return {
         "id":"junk",
+        "tags":[],
         "title": "fake recipe",
         "permissions_required":"household",
         "instructions": [],

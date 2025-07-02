@@ -12,7 +12,7 @@ class AllRecipes():
     @staticmethod
     def _get_soup(url:str) -> BeautifulSoup:
         req = urllib.request.Request(url)
-        req.add_header('Cookie', 'euConsent=true')
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
 
         handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
         opener = urllib.request.build_opener(handler)
@@ -28,7 +28,8 @@ class AllRecipes():
         """
         try:
             soup = AllRecipes._get_soup(url)
-        except:
+        except Exception as e:
+            print('Allrecipes error: ',e)
             return []
 
         articles = soup.find_all("a", {"class": card_class})

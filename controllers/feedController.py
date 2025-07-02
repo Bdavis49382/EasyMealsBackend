@@ -17,6 +17,7 @@ class FeedController:
     def add_recipe(self, user_id: str, recipe: Recipe) -> str:
         # Add a recipe to the user's feed
         recipe.author_id = user_id
+        recipe.tags.append("MyRecipes")
         if recipe.src_name is None:
             recipe.src_name = self.user_repo.get_user(user_id).full_name
         recipe_id = self.user_repo.add_recipe(user_id, recipe)

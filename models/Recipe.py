@@ -7,6 +7,7 @@ class Recipe(BaseModel):
     title: str
     permissions_required: str = "household"
     instructions: list[str]
+    tags: list[str] = []
     img_link: str
     author_id: str | None = None
     servings: str | None = None
@@ -20,6 +21,7 @@ class Recipe(BaseModel):
         return Recipe(
             id=recipe_id,
             title=r.title,
+            tags=r.tags,
             permissions_required =r.permissions_required,
             instructions= r.instructions,
             img_link= r.img_link,
@@ -44,6 +46,7 @@ class MenuItemLite(BaseModel):
 class RecipeOut(BaseModel):
     # when coming out, recipe should have an id
     id: str | None = None
+    tags: list[str] = []
     title: str
     permissions_required: str
     instructions: list[str]
@@ -63,11 +66,13 @@ class RecipeLite(BaseModel):
     history: list[Record] = []
     title: str
     img_link: str
+    tags: list[str] = []
     rate: float | None = None
     score: float | None = None
     @staticmethod
     def make_from_full(recipe: object):
         return RecipeLite(id=recipe.id, 
+                          tags = recipe.tags,
                           src_link = recipe.src_link, 
                           title = recipe.title, 
                           img_link= recipe.img_link,
