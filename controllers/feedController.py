@@ -32,19 +32,24 @@ class FeedController:
         blob.make_public()
         return blob.public_url
 
-    def get_user_recipes(self, household_id: str, keyword: str | None = None) -> list[RecipeLite]:
+    def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = []) -> list[RecipeLite]:
         recipes = []
         for user_id in self.repo.get_user_ids(household_id):
             user_recipes = self.user_repo.get_user_recipes(user_id)
             for recipe in user_recipes.values():
-                if keyword is None:
+                if len(keywords) == 0 and len(tags) == 0:
                     recipes.append(RecipeLite.make_from_full(recipe))
-                elif keyword.upper() in recipe.title.upper():
+                elif len(tags) != 0 and any([tag in tags for tag in recipe.tags]):
+                    recipes.append(RecipeLite.make_from_full(recipe))
+                elif any(x.upper() in recipe.title.upper() for x in keywords):
                     recipes.append(RecipeLite.make_from_full(recipe))
         return recipes
     
     def search_all_recipes(self, query: str):
-        return AllRecipes.search(query)
+        if len(query.strip()) != 0:
+            return AllRecipes.search(query)
+        else:
+            return []
     
     def get_suggested_recipes(self):
         return AllRecipes.get_main_dishes()

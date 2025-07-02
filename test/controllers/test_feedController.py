@@ -87,7 +87,7 @@ def test_get_user_recipes_filtered(title, expected_amount, feed_controller,mock_
     mock_user_repo.get_user_recipes.return_value = { '10': mock_recipe }
 
     # Act
-    result = feed_controller.get_user_recipes("1", keyword="fake")
+    result = feed_controller.get_user_recipes("1", keywords=["fake"])
 
     # Assert
     assert len(result) == expected_amount
