@@ -83,6 +83,8 @@ class AllRecipes():
                     recipes = AllRecipes.get_main_dishes()
                 case 'SOUPS':
                     recipes = AllRecipes.get_soups()
+                case _:
+                    recipes = []
             out.extend(recipes)
         return out
 
