@@ -45,13 +45,17 @@ class FeedController:
         return recipes
     
     def get_user_tags(self, user_id: str) -> list[str]:
-        return self.user_repo.get_user_tags(user_id)
+        tags = self.user_repo.get_user_tags(user_id)
+        tags.extend(["Breakfast","Soups","MainDishes","Desserts"])
+        return tags
     
-    def search_all_recipes(self, query: str):
-        if len(query.strip()) != 0:
-            return AllRecipes.search(query)
-        else:
-            return []
+    def search_all_recipes(self, keywords: str, tags: list[str]):
+        out = []
+        if len(tags) != 0:
+            out.extend(AllRecipes.get_recipes_by_tag(tags))
+        if len(keywords.strip()) != 0:
+            out.extend(AllRecipes.search(keywords))
+        return out
     
     def get_suggested_recipes(self, page=0):
         pages = [AllRecipes.get_main_dishes(), AllRecipes.get_soups(), AllRecipes.get_breakfasts(), AllRecipes.get_desserts()]

@@ -35,7 +35,6 @@ class AllRecipes():
 
         articles = soup.find_all("a", {"class": card_class})
 
-        print('getting feed recipes')
         return [RecipeCard(a).get_recipe_lite(tags=tags) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
     @staticmethod
@@ -70,6 +69,23 @@ class AllRecipes():
     @lru_cache
     def get_breakfasts() -> list[RecipeLite]:
         return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/78/breakfast-and-brunch/", 'mntl-document-card',["Breakfast"])
+    
+    @staticmethod
+    def get_recipes_by_tag(tags: list[str]) -> list[RecipeLite]:
+        out = []
+        for tag in tags:
+            match (tag.upper()):
+                case 'BREAKFAST':
+                    recipes = AllRecipes.get_breakfasts()
+                case 'DESSERTS':
+                    recipes = AllRecipes.get_desserts()
+                case 'MAINDISHES':
+                    recipes = AllRecipes.get_main_dishes()
+                case 'SOUPS':
+                    recipes = AllRecipes.get_soups()
+            out.extend(recipes)
+        return out
+
 
     @staticmethod
     def get(url):

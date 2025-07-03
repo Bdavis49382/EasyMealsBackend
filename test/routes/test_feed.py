@@ -64,6 +64,7 @@ def test_get_feed(query, valid,client, fake_header):
 
     # Act
     response = client.get(f"feed/search/{query}", headers=header)
+    print(response.json())
 
     # Assert
     assert response.status_code == 200

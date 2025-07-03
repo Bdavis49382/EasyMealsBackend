@@ -37,7 +37,7 @@ async def search_feed(query: str, request: Request, controller: Annotated[FeedCo
     keywords = [x for x in query.strip().split(' ') if x[0] != '#']
     tags = [x[1:] for x in query.strip().split(' ') if x[0] == '#' and len(x) > 1]
     user_recipes = controller.get_user_recipes(request.state.household_id, keywords=keywords, tags=tags)
-    all_recipes = controller.search_all_recipes(' '.join(keywords))
+    all_recipes = controller.search_all_recipes(' '.join(keywords), tags)
     combined_recipes = controller.remove_duplicates(user_recipes, all_recipes)
     sorted_recipes = controller.sort_recipes(request.state.household_id, combined_recipes)
     
