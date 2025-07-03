@@ -28,10 +28,14 @@ async def get_feed(request: Request, controller: Annotated[FeedController, Depen
     sorted_recipes = controller.sort_recipes(request.state.household_id, combined_recipes)
     return sorted_recipes
 
+@router.get("/tags")
+async def get_user_tags(request: Request, controller: Annotated[FeedController, Depends()]) -> list[str]:
+    return controller.get_user_tags(request.state.user_id)
+
 @router.get('/search/{query}')
 async def search_feed(query: str, request: Request, controller: Annotated[FeedController, Depends()]) -> list[RecipeLite]:
-    keywords = [x for x in query.split(' ') if x[0] != '#']
-    tags = [x[1:] for x in query.split(' ') if x[0] == '#' and len(x) > 1]
+    keywords = [x for x in query.strip().split(' ') if x[0] != '#']
+    tags = [x[1:] for x in query.strip().split(' ') if x[0] == '#' and len(x) > 1]
     user_recipes = controller.get_user_recipes(request.state.household_id, keywords=keywords, tags=tags)
     all_recipes = controller.search_all_recipes(' '.join(keywords))
     combined_recipes = controller.remove_duplicates(user_recipes, all_recipes)

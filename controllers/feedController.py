@@ -34,16 +34,18 @@ class FeedController:
 
     def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = []) -> list[RecipeLite]:
         recipes = []
+        tags = [t.upper() for t in tags]
         for user_id in self.repo.get_user_ids(household_id):
             user_recipes = self.user_repo.get_user_recipes(user_id)
             for recipe in user_recipes.values():
                 if len(keywords) == 0 and len(tags) == 0:
                     recipes.append(RecipeLite.make_from_full(recipe))
-                elif len(tags) != 0 and any([tag in tags for tag in recipe.tags]):
-                    recipes.append(RecipeLite.make_from_full(recipe))
-                elif any(x.upper() in recipe.title.upper() for x in keywords):
+                elif (len(tags) == 0 or any([tag.upper() in tags for tag in recipe.tags])) and (len(keywords) == 0 or any(x.upper() in recipe.title.upper() for x in keywords)):
                     recipes.append(RecipeLite.make_from_full(recipe))
         return recipes
+    
+    def get_user_tags(self, user_id: str) -> list[str]:
+        return self.user_repo.get_user_tags(user_id)
     
     def search_all_recipes(self, query: str):
         if len(query.strip()) != 0:

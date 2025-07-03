@@ -24,6 +24,7 @@ class UserRepository:
             return User.model_validate(user)
         except:
             return None
+
     
     def get_users(self,white_list: list[str] | None = None) -> list[User]:
         user_list = {}
@@ -69,6 +70,11 @@ class UserRepository:
                 recipe['id'] = id
                 recipes[id] = RecipeOut.model_validate(recipe)
         return recipes
+
+    def get_user_tags(self, user_id: str) -> list[str]:
+        user = self.get_user(user_id)
+        # flatten tags lists
+        return [tag for r in user.recipes.values() for tag in r.tags]
     
     def search_user_recipes(self, user_id: str, keyword: str) -> list[RecipeOut]:
         return [x for x in self.get_user_recipes(user_id).values() if keyword.upper() in x.title.upper()]
