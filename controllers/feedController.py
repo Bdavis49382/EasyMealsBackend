@@ -53,8 +53,14 @@ class FeedController:
         else:
             return []
     
-    def get_suggested_recipes(self):
-        return AllRecipes.get_main_dishes()
+    def get_suggested_recipes(self, page=0):
+        pages = [AllRecipes.get_main_dishes(), AllRecipes.get_soups(), AllRecipes.get_breakfasts(), AllRecipes.get_desserts()]
+        combined = []
+        combined.extend(pages[page%len(pages)][:20])
+        combined.extend(pages[(page + 1)%len(pages)][20:35])
+        combined.extend(pages[(page + 2)%len(pages)][35:45])
+        combined.extend(pages[(page + 3)%len(pages)][45:50])
+        return combined
     
     def remove_duplicates(self, user_recipes: list[RecipeLite],other_recipes: list[RecipeLite]) -> list[RecipeLite]:
         user_titles = set(recipe.title for recipe in user_recipes)
