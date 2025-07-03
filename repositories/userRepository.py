@@ -71,10 +71,10 @@ class UserRepository:
                 recipes[id] = RecipeOut.model_validate(recipe)
         return recipes
 
-    def get_user_tags(self, user_id: str) -> list[str]:
+    def get_user_tags(self, user_id: str) -> set[str]:
         user = self.get_user(user_id)
         # flatten tags lists
-        return [tag for r in user.recipes.values() for tag in r.tags]
+        return set([tag for r in user.recipes.values() for tag in r.tags])
     
     def search_user_recipes(self, user_id: str, keyword: str) -> list[RecipeOut]:
         return [x for x in self.get_user_recipes(user_id).values() if keyword.upper() in x.title.upper()]

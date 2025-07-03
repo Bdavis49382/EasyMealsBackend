@@ -46,8 +46,8 @@ class FeedController:
     
     def get_user_tags(self, user_id: str) -> list[str]:
         tags = self.user_repo.get_user_tags(user_id)
-        tags.extend(["Breakfast","Soups","MainDishes","Desserts"])
-        return tags
+        tags.update(["Breakfast","Soups","MainDishes","Desserts"])
+        return list(tags)
     
     def search_all_recipes(self, keywords: str, tags: list[str]):
         out = []
