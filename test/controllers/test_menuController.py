@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
 from controllers.menuController import MenuController
+from controllers.allRecipes import AllRecipes
 
 @fixture
 def mock_household_repo():
@@ -13,8 +14,13 @@ def mock_user_repo():
     return MagicMock(spec=UserRepository)
 
 @fixture
-def menu_controller(mock_household_repo, mock_user_repo):
-    return MenuController(mock_household_repo, mock_user_repo)
+def mock_all_recipes():
+    return MagicMock(spec=AllRecipes)
+
+@fixture
+def menu_controller(mock_household_repo, mock_user_repo, mock_all_recipes):
+    return MenuController(mock_household_repo, mock_user_repo, mock_all_recipes)
+
 
 def test_add_recipe(menu_controller,mock_household_repo, mock_menu_item, mock_recipe):
     # Arrange

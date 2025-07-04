@@ -8,9 +8,10 @@ from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
 
 class MenuController:
-    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()]):
+    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()], all_recipes: Annotated[AllRecipes, Depends()]):
         self.repo = repo
         self.user_repo = user_repo
+        self.all_recipes = all_recipes
 
     def add_recipe(self, household_id, menu_item: MenuItem, user_id: str):
         # save the recipe first before adding it to the menu
@@ -59,7 +60,7 @@ class MenuController:
         return None
     
     def get_recipe_online(self, link: str) -> Recipe:
-        raw_recipe = AllRecipes.get(link)
+        raw_recipe = self.all_recipes.get(link)
         if len(raw_recipe.failures):
             print('failed to retrieve these items, potentially outdated html info:',raw_recipe.failures)
         recipe = Recipe(
