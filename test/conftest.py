@@ -5,6 +5,7 @@ from models.Record import Record
 from models.User import User
 from models.Household import JoinCode, Household
 from models.ShoppingItem import ShoppingItem
+from controllers.allRecipes import AllRecipes
 from datetime import datetime
 from google.cloud.firestore_v1.collection import CollectionReference
 from google.cloud.firestore_v1.document import DocumentReference

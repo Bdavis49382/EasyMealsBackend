@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from models.Recipe import RecipeLite
+from unittest.mock import MagicMock
 from functools import lru_cache
 
 import urllib.parse
@@ -22,8 +23,9 @@ class AllRecipes():
 
         return BeautifulSoup(html_content, 'html.parser')
 
+    @lru_cache
     @staticmethod
-    def get_recipes_from_page(url: str, card_class: str, tags: list = []) -> list[RecipeLite]:
+    def get_recipes_from_page(url: str, card_class: str, tag: str="") -> list[RecipeLite]:
         """
         Find all recipes on the page
         """
@@ -35,11 +37,10 @@ class AllRecipes():
 
         articles = soup.find_all("a", {"class": card_class})
 
-        return [RecipeCard(a).get_recipe_lite(tags=tags) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
+        print('getting recipes')
+        return [RecipeCard(a).get_recipe_lite(tag=tag) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
-    @staticmethod
-    @lru_cache
-    def search(search_string) -> list[RecipeLite]:
+    def search(self,search_string) -> list[RecipeLite]:
         """
         Search recipes parsing the returned html data.
         """
@@ -50,47 +51,37 @@ class AllRecipes():
 
         return AllRecipes.get_recipes_from_page(url,  "mntl-card-list-card--extendable")
     
-    @staticmethod
-    @lru_cache
-    def get_main_dishes() -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card',["MainDishes"])
+    def get_main_dishes(self) -> list[RecipeLite]:
+        return AllRecipes.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card',"MainDishes")
     
-    @staticmethod
-    @lru_cache
-    def get_soups() -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/16369/soups-stews-and-chili/soup/", 'mntl-document-card',["Soups"])
+    def get_soups(self) -> list[RecipeLite]:
+        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/16369/soups-stews-and-chili/soup/", 'mntl-document-card',"Soups")
     
-    @staticmethod
-    @lru_cache
-    def get_desserts() -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/79/desserts/", 'mntl-document-card',["Desserts"])
+    def get_desserts(self) -> list[RecipeLite]:
+        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/79/desserts/", 'mntl-document-card',"Desserts")
 
-    @staticmethod
-    @lru_cache
-    def get_breakfasts() -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/78/breakfast-and-brunch/", 'mntl-document-card',["Breakfast"])
+    def get_breakfasts(self) -> list[RecipeLite]:
+        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/78/breakfast-and-brunch/", 'mntl-document-card',"Breakfast")
     
-    @staticmethod
-    def get_recipes_by_tag(tags: list[str]) -> list[RecipeLite]:
+    def get_recipes_by_tag(self, tags: list[str]) -> list[RecipeLite]:
         out = []
         for tag in tags:
             match (tag.upper()):
                 case 'BREAKFAST':
-                    recipes = AllRecipes.get_breakfasts()
+                    recipes = self.get_breakfasts()
                 case 'DESSERTS':
-                    recipes = AllRecipes.get_desserts()
+                    recipes = self.get_desserts()
                 case 'MAINDISHES':
-                    recipes = AllRecipes.get_main_dishes()
+                    recipes = self.get_main_dishes()
                 case 'SOUPS':
-                    recipes = AllRecipes.get_soups()
+                    recipes = self.get_soups()
                 case _:
                     recipes = []
             out.extend(recipes)
         return out
 
 
-    @staticmethod
-    def get(url):
+    def get(self, url):
         """
         'url' from 'search' method.
             ex. "/recipe/106349/beef-and-spinach-curry/"
@@ -98,7 +89,7 @@ class AllRecipes():
         # base_url = "https://allrecipes.com/"
         # url = base_url + uri
 
-        soup = AllRecipes._get_soup(url)
+        soup = self._get_soup(url)
 
         return RecipePage(url,soup)
 
@@ -122,8 +113,11 @@ class RecipeCard(BaseRecipe):
         self.rate = self.try_find(self._get_rate, 'rate', None)
         self.img_link = self.try_find(self.get_img_link,'img_link', None)
     
-    def get_recipe_lite(self, tags=[]) -> RecipeLite:
-        return RecipeLite(src_link=self.src_link,title = self.title, img_link=self.img_link, rate=self.rate, tags=tags)
+    def get_recipe_lite(self, tag) -> RecipeLite:
+        if tag == '':
+            return RecipeLite(src_link=self.src_link,title = self.title, img_link=self.img_link, rate=self.rate)
+        else:
+            return RecipeLite(src_link=self.src_link,title = self.title, img_link=self.img_link, rate=self.rate, tags=[tag])
         
     def _get_title(self):
         return self.soup.find("span", {"class": "card__title"}).get_text().strip(' \t\n\r')

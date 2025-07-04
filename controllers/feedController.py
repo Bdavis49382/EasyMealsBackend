@@ -1,6 +1,6 @@
 from firebase import bucket
 from datetime import datetime, timezone, timedelta
-from models.Recipe import Recipe, RecipeLite
+from models.Recipe import Recipe, RecipeLite, RecipeOut
 from controllers.allRecipes import AllRecipes
 from uuid import uuid4
 from fastapi import UploadFile, Depends, HTTPException
@@ -10,9 +10,10 @@ from repositories.userRepository import UserRepository
 import random
 
 class FeedController:
-    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()]):
+    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()], all_recipes: Annotated[AllRecipes, Depends()]):
         self.repo = repo
         self.user_repo = user_repo
+        self.all_recipes = all_recipes
 
     def add_recipe(self, user_id: str, recipe: Recipe) -> str:
         # Add a recipe to the user's feed
@@ -31,17 +32,21 @@ class FeedController:
         blob.upload_from_string(await file.read(), content_type=file.content_type)
         blob.make_public()
         return blob.public_url
+    
+    def _tag_hits(self, recipe: RecipeOut, tags: set[str]):
+        return len([x for x in recipe.tags if x.upper() in tags])
 
-    def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = []) -> list[RecipeLite]:
+    def _keyword_hits(self, recipe: RecipeOut, keywords: list[str]):
+        return len([x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
+
+    def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = []) -> list[tuple[RecipeLite, int]]:
         recipes = []
-        tags = [t.upper() for t in tags]
+        tags = set([t.upper() for t in tags])
         for user_id in self.repo.get_user_ids(household_id):
             user_recipes = self.user_repo.get_user_recipes(user_id)
             for recipe in user_recipes.values():
-                if len(keywords) == 0 and len(tags) == 0:
-                    recipes.append(RecipeLite.make_from_full(recipe))
-                elif (len(tags) == 0 or any([tag.upper() in tags for tag in recipe.tags])) and (len(keywords) == 0 or any(x.upper() in recipe.title.upper() for x in keywords)):
-                    recipes.append(RecipeLite.make_from_full(recipe))
+                # keeps track of the recipes along with the total number of hits they had.
+                recipes.append((RecipeLite.make_from_full(recipe), self._tag_hits(recipe,tags) + self._keyword_hits(recipe, keywords)))
         return recipes
     
     def get_user_tags(self, user_id: str) -> list[str]:
@@ -49,26 +54,42 @@ class FeedController:
         tags.update(["Breakfast","Soups","MainDishes","Desserts"])
         return list(tags)
     
-    def search_all_recipes(self, keywords: str, tags: list[str]):
+    def search_all_recipes(self, keywords: str, tags: list[str]) -> list[tuple[RecipeLite, int]]:
         out = []
         if len(tags) != 0:
-            out.extend(AllRecipes.get_recipes_by_tag(tags))
+            recipes = self.all_recipes.get_recipes_by_tag(tags)
+            for recipe in recipes:
+                if len(keywords.strip()) != 0:
+                    out.append((recipe, 1 + self._keyword_hits(recipe, keywords.split(' '))))
+                else:
+                    out.append((recipe,1))
         if len(keywords.strip()) != 0:
-            out.extend(AllRecipes.search(keywords))
+            recipes = self.all_recipes.search(keywords)
+            for recipe in recipes:
+                out.append((recipe, self._keyword_hits(recipe, keywords.split(' '))))
         return out
     
-    def get_suggested_recipes(self, page=0):
-        pages = [AllRecipes.get_main_dishes(), AllRecipes.get_soups(), AllRecipes.get_breakfasts(), AllRecipes.get_desserts()]
+    def get_suggested_recipes(self,page:int=0):
+        pages = [self.all_recipes.get_main_dishes(), self.all_recipes.get_soups(), self.all_recipes.get_breakfasts(), self.all_recipes.get_desserts()]
         combined = []
-        combined.extend(pages[page%len(pages)][:20])
-        combined.extend(pages[(page + 1)%len(pages)][20:35])
-        combined.extend(pages[(page + 2)%len(pages)][35:45])
-        combined.extend(pages[(page + 3)%len(pages)][45:50])
+        try:
+            combined.extend(pages[page%len(pages)][:20])
+            combined.extend(pages[(page + 1)%len(pages)][20:35])
+            combined.extend(pages[(page + 2)%len(pages)][35:45])
+            combined.extend(pages[(page + 3)%len(pages)][45:50])
+        except IndexError:
+            print('one of the allrecipes pages did not have 50 items, so it was not added to the feed.')
+
         return combined
     
     def remove_duplicates(self, user_recipes: list[RecipeLite],other_recipes: list[RecipeLite]) -> list[RecipeLite]:
         user_titles = set(recipe.title for recipe in user_recipes)
         user_recipes.extend([recipe for recipe in other_recipes if recipe.title not in user_titles])
+        return user_recipes
+
+    def remove_duplicates_search(self, user_recipes: list[tuple[RecipeLite,int]],other_recipes: list[tuple[RecipeLite,int]]) -> list[tuple[RecipeLite,int]]:
+        user_titles = set(recipe[0].title for recipe in user_recipes)
+        user_recipes.extend([recipe for recipe in other_recipes if recipe[0].title not in user_titles])
         return user_recipes
     
     def score_recipe(self, recipe: RecipeLite, menu_ids: list[str], visited_titles: set[str]) -> int:
@@ -86,7 +107,7 @@ class FeedController:
                 score -= 5
         else:
             if recipe.id != None and recipe.id in menu_ids:
-                score -= 200
+                score -= 500
             if len(recipe.history) > 0:
                 most_recent = max(x.timestamp for x in recipe.history)
                 waiting_time = 30
@@ -123,4 +144,8 @@ class FeedController:
             menu_ids = []
 
         recipes.sort(key=lambda recipe: self.score_recipe(recipe, menu_ids, visited_titles), reverse=True)
-        return [x for x in recipes if x.score > -100]
+        return [x for x in recipes if x.score > -400]
+    
+    def sort_search_recipes(self, recipes: list[tuple[RecipeLite,int]]) -> list[RecipeLite]:
+        recipes.sort(key = lambda recipe: recipe[1], reverse = True)
+        return [x[0] for x in recipes]

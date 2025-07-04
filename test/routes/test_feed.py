@@ -1,13 +1,26 @@
 from main import app
 from auth import get_user, get_test_user
+from unittest.mock import MagicMock
+from controllers.allRecipes import AllRecipes
+from models.Recipe import RecipeLite
 from pytest import fixture, mark
 from firebase import user_test_ref as mock_ref, user_ref, household_ref, household_test_ref
 from fastapi.testclient import TestClient
 
+def mock_all_recipes():
+    mock = MagicMock(spec=AllRecipes)
+    recipe = RecipeLite(title="spaghetti",img_link="")
+    mock.search.return_value = [recipe]
+    mock.get_main_dishes.return_value = [recipe for _ in range(50)]
+    mock.get_soups.return_value = [recipe for _ in range(50)]
+    mock.get_desserts.return_value = [recipe for _ in range(50)]
+    mock.get_breakfasts.return_value = [recipe for _ in range(50)]
+    return mock
 
 app.dependency_overrides[user_ref] = mock_ref
 app.dependency_overrides[household_ref] = household_test_ref
 app.dependency_overrides[get_user] = get_test_user
+app.dependency_overrides[AllRecipes] = mock_all_recipes
 
 @fixture(scope="module")
 def client():
@@ -51,24 +64,34 @@ def test_get_feed(client, fake_header, mock_recipe_dict):
     uid, header = fake_header
 
     # Act
+    response = client.post(f"feed/", headers=header, json=mock_recipe_dict)
     response = client.get(f"feed/", headers=header)
-
     # Assert
     assert response.status_code == 200
-    assert len(response.json()) > 0
+    assert len(response.json()) == 51
     
-@mark.parametrize('query,valid',[(';lskdlaju',False),('spaghetti',True)])
-def test_get_feed(query, valid,client, fake_header):
+def test_search(client, fake_header):
     # Arrange
     uid, header = fake_header
 
     # Act
-    response = client.get(f"feed/search/{query}", headers=header)
-    print(response.json())
+    response = client.get(f"feed/search?query=spaghetti", headers=header)
 
     # Assert
     assert response.status_code == 200
-    if valid:
-        assert len(response.json()) >= 0
-    else:
-        assert len(response.json()) == 0 
+    assert len(response.json()) == 1
+
+def test_get_user_tags(client, fake_header, mock_recipe_dict):
+    # Arrange
+    uid, header = fake_header
+    mock_recipe_dict['tags'] = ['fakeTag']
+
+    # Act
+    response = client.post(f"feed/", headers=header, json=mock_recipe_dict)
+    response = client.get(f"feed/tags", headers=header)
+
+    # Assert
+    assert response.status_code == 200
+    assert len(response.json()) == 6 # includes all the tags that come from allrecipes.
+    assert 'fakeTag' in response.json()
+    assert 'MyRecipes' in response.json()
