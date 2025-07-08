@@ -38,7 +38,7 @@ class FeedController:
 
     def _keyword_hits(self, recipe: RecipeOut, keywords: list[str]):
         # multiply by 100 so that it will essentially sort by keywords first, then tags within that, so the order will be combined matches, keyword only matches, and then tag only matches.
-        return len([100 * x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
+        return 100 * len([x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
 
     def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = [], page: int = -1) -> list[tuple[RecipeLite, int]]:
         recipes = []
@@ -158,4 +158,4 @@ class FeedController:
     
     def sort_search_recipes(self, recipes: list[tuple[RecipeLite,int]]) -> list[RecipeLite]:
         recipes.sort(key = lambda recipe: recipe[1], reverse = True)
-        return [x[0] for x in recipes]
+        return [x[0] for x in recipes if x[1] != 0]
