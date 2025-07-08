@@ -117,23 +117,23 @@ def test_keyword_hits(feed_controller, mock_recipe):
     result = feed_controller._keyword_hits(mock_recipe, keywords="recipe for tests and testing".split(' '))
 
     # Assert
-    assert result == 2
+    assert result == 200
 
 @mark.parametrize('keywords,tags,expected_amount',
     [(['flake'],[],0),
-     (['fake'],[],1),
-     (['FAKE'],[],1),
-     (['Fake'],[],1),
-     (['flfake testf l-;'],[],1),
+     (['fake'],[],100),
+     (['FAKE'],[],100),
+     (['Fake'],[],100),
+     (['flfake testf l-;'],[],100),
      ([],[],0),
      ([],['flake'],0),
      ([],['fake'],1),
      ([],['FAKE'],1),
      ([],['Fake'],1),
      ([],['flfakef l-;'],0),
-     (['fake'],['fake'],2),
-     (['fake'],['fake','test'],3),
-     (['fake', 'test'],['fake'],3)
+     (['fake'],['fake'],101),
+     (['fake'],['fake','test'],102),
+     (['fake', 'test'],['fake'],201)
      ])
 def test_get_user_recipes_filtered(keywords, tags, expected_amount, feed_controller,mock_user_repo, mock_household_repo, mock_recipe):
     # Arrange
@@ -154,13 +154,13 @@ def test_get_user_recipes_filtered(keywords, tags, expected_amount, feed_control
 
 @mark.parametrize('keywords,tags,expected_amount',
     [('flake',[],0),
-     ('fake',[],1),
-     ('FAKE',[],1),
-     ('Fake',[],1),
+     ('fake',[],100),
+     ('FAKE',[],100),
+     ('Fake',[],100),
      ('flfake testf l-;',[],0),
      ('',[],0),
-     ('fake',['fake'],2),
-     ('fake test',['fake'],3)
+     ('fake',['fake'],101),
+     ('fake test',['fake'],201)
      ])
 def test_search_all_recipes(keywords, tags, expected_amount, feed_controller, mock_all_recipes, mock_recipe):
     # Arrange
