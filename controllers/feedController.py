@@ -37,7 +37,8 @@ class FeedController:
         return len([x for x in recipe.tags if x.upper() in tags])
 
     def _keyword_hits(self, recipe: RecipeOut, keywords: list[str]):
-        return len([x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
+        # multiply by 100 so that it will essentially sort by keywords first, then tags within that, so the order will be combined matches, keyword only matches, and then tag only matches.
+        return len([100 * x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
 
     def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = [], page: int = -1) -> list[tuple[RecipeLite, int]]:
         recipes = []
