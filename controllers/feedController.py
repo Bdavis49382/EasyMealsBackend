@@ -39,14 +39,23 @@ class FeedController:
     def _keyword_hits(self, recipe: RecipeOut, keywords: list[str]):
         return len([x for x in keywords if x.upper() in recipe.title.upper() or recipe.title.upper() in x.upper()])
 
-    def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = []) -> list[tuple[RecipeLite, int]]:
+    def get_user_recipes(self, household_id: str, keywords: list[str] = [], tags: list[str] = [], page: int = -1) -> list[tuple[RecipeLite, int]]:
         recipes = []
         tags = set([t.upper() for t in tags])
         for user_id in self.repo.get_user_ids(household_id):
             user_recipes = self.user_repo.get_user_recipes(user_id)
-            for recipe in user_recipes.values():
-                # keeps track of the recipes along with the total number of hits they had.
-                recipes.append((RecipeLite.make_from_full(recipe), self._tag_hits(recipe,tags) + self._keyword_hits(recipe, keywords)))
+            sorted_recipes = self.sort_recipes(household_id,[RecipeLite.make_from_full(x) for x in list(user_recipes.values())])
+            if page * 10 < len(sorted_recipes) or page == -1:
+                # if page is -1, we just want the whole thing.
+                if page == -1:
+                    start = 0
+                    end = len(sorted_recipes)
+                else:
+                    start = page * 10
+                    end = start + 10 if start + 10 < len(sorted_recipes) else len(sorted_recipes)
+                for recipe in sorted_recipes[start:end]:
+                    # keeps track of the recipes along with the total number of hits they had.
+                    recipes.append((recipe, self._tag_hits(recipe,tags) + self._keyword_hits(recipe, keywords)))
         return recipes
     
     def get_user_tags(self, user_id: str) -> list[str]:

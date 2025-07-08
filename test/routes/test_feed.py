@@ -66,6 +66,7 @@ def test_get_feed(client, fake_header, mock_recipe_dict):
     # Act
     response = client.post(f"feed/", headers=header, json=mock_recipe_dict)
     response = client.get(f"feed/", headers=header)
+    
     # Assert
     assert response.status_code == 200
     assert len(response.json()) == 51

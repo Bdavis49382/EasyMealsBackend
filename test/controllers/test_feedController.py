@@ -84,6 +84,21 @@ def test_get_user_recipes_no_filter(feed_controller,mock_user_repo, mock_househo
     assert result[0][0].img_link == mock_recipe.img_link
     assert result[0][0].id == mock_recipe.id
 
+@mark.parametrize('page,amount_expected',[(-1,15),(0,10),(1,5),(2,0),(200,0)])
+def test_get_user_recipes_no_filter_with_paging(page,amount_expected,feed_controller,mock_user_repo, mock_household_repo, mock_recipe):
+    # Arrange
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_recipe.id = "1"
+    fake_recipes = {}
+    [fake_recipes.setdefault(x,mock_recipe) for x in range(15)]
+    mock_user_repo.get_user_recipes.return_value = fake_recipes
+
+    # Act
+    result = feed_controller.get_user_recipes("1",page=page)
+
+    # Assert
+    assert len(result) == amount_expected
+
 def test_tag_hits(feed_controller, mock_recipe):
     # Arrange
     mock_recipe.tags = ["testTag","testTag2", "testTag3"]
@@ -126,6 +141,7 @@ def test_get_user_recipes_filtered(keywords, tags, expected_amount, feed_control
     mock_recipe.id = "1"
     mock_recipe.title = "fake test"
     mock_recipe.tags = ["fake","test"]
+    mock_recipe.rate = None
     mock_user_repo.get_user_recipes.return_value = { '10': mock_recipe }
 
     # Act

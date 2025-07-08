@@ -22,7 +22,7 @@ async def upload_image(file: UploadFile, controller: Annotated[FeedController, D
 
 @router.get("/")
 async def get_feed(request: Request, controller: Annotated[FeedController, Depends()], page: int = 0) -> list[RecipeLite]:
-    user_recipes = [x[0] for x in controller.get_user_recipes(request.state.household_id)]
+    user_recipes = [x[0] for x in controller.get_user_recipes(request.state.household_id, page=page)]
     suggested_recipes = controller.get_suggested_recipes(page=page)
     combined_recipes = controller.remove_duplicates(user_recipes, suggested_recipes)
     sorted_recipes = controller.sort_recipes(request.state.household_id, combined_recipes)
