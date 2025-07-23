@@ -231,42 +231,50 @@ def test_get_user_tags(feed_controller,mock_user_repo,):
     assert len(result) == 5 # At the moment, the allrecipes tags are added directly in the code here. Likely to change later.
     assert 'fakeTag' in result
 
-def test_remove_duplicates_has_duplicate( feed_controller, mock_recipe):
+def test_remove_duplicates_has_duplicate( feed_controller, mock_recipe, mock_household_repo, mock_user_repo):
     # Arrange
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_user_repo.get_user_recipes.return_value = {"1":mock_recipe}
 
     # Act
-    result = feed_controller.remove_duplicates([mock_recipe], [mock_recipe])
+    result = feed_controller.remove_duplicates([mock_recipe], [mock_recipe],"1")
 
     # Assert
     assert len(result) == 1
 
-def test_remove_duplicates_unique( feed_controller, mock_recipe):
+def test_remove_duplicates_unique( feed_controller, mock_recipe, mock_household_repo, mock_user_repo):
     # Arrange
     mock2 = deepcopy(mock_recipe)
     mock2.title = "not the same"
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_user_repo.get_user_recipes.return_value = {"1":mock_recipe}
 
     # Act
-    result = feed_controller.remove_duplicates([mock_recipe], [mock2])
+    result = feed_controller.remove_duplicates([mock_recipe], [mock2],"1")
 
     # Assert
     assert len(result) == 2
 
-def test_remove_duplicates_search_has_duplicate( feed_controller, mock_recipe):
+def test_remove_duplicates_search_has_duplicate( feed_controller, mock_recipe, mock_household_repo, mock_user_repo):
     # Arrange
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_user_repo.get_user_recipes.return_value = {"1":mock_recipe}
 
     # Act
-    result = feed_controller.remove_duplicates_search([(mock_recipe,1)], [(mock_recipe,1)])
+    result = feed_controller.remove_duplicates_search([(mock_recipe,1)], [(mock_recipe,1)],"1")
 
     # Assert
     assert len(result) == 1
 
-def test_remove_duplicates_search_unique( feed_controller, mock_recipe):
+def test_remove_duplicates_search_unique( feed_controller, mock_recipe, mock_household_repo, mock_user_repo):
     # Arrange
     mock2 = deepcopy(mock_recipe)
     mock2.title = "not the same"
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_user_repo.get_user_recipes.return_value = {"1":mock_recipe}
 
     # Act
-    result = feed_controller.remove_duplicates_search([(mock_recipe,1)], [(mock2,1)])
+    result = feed_controller.remove_duplicates_search([(mock_recipe,1)], [(mock2,1)],"1")
 
     # Assert
     assert len(result) == 2

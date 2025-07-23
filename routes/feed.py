@@ -24,7 +24,7 @@ async def upload_image(file: UploadFile, controller: Annotated[FeedController, D
 async def get_feed(request: Request, controller: Annotated[FeedController, Depends()], page: int = 0) -> list[RecipeLite]:
     user_recipes = [x[0] for x in controller.get_user_recipes(request.state.household_id, page=page)]
     suggested_recipes = controller.get_suggested_recipes(page=page)
-    combined_recipes = controller.remove_duplicates(user_recipes, suggested_recipes)
+    combined_recipes = controller.remove_duplicates(user_recipes, suggested_recipes, request.state.household_id)
     sorted_recipes = controller.sort_recipes(request.state.household_id, combined_recipes)
     return sorted_recipes
 
@@ -38,7 +38,7 @@ async def search_feed(query: str, request: Request, controller: Annotated[FeedCo
     tags = [x[1:] for x in query.strip().split(' ') if x[0] == '#' and len(x) > 1]
     user_recipes = controller.get_user_recipes(request.state.household_id, keywords=keywords, tags=tags)
     all_recipes = controller.search_all_recipes(' '.join(keywords), tags)
-    combined_recipes = controller.remove_duplicates_search(user_recipes, all_recipes)
+    combined_recipes = controller.remove_duplicates_search(user_recipes, all_recipes, request.state.household_id)
     sorted_recipes = controller.sort_search_recipes(combined_recipes)
     
     return sorted_recipes

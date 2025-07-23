@@ -92,13 +92,15 @@ class FeedController:
 
         return combined
     
-    def remove_duplicates(self, user_recipes: list[RecipeLite],other_recipes: list[RecipeLite]) -> list[RecipeLite]:
-        user_titles = set(recipe.title for recipe in user_recipes)
+    def remove_duplicates(self, user_recipes: list[RecipeLite],other_recipes: list[RecipeLite], household_id: str) -> list[RecipeLite]:
+        all_user_recipes = [recipe for user_id in self.repo.get_user_ids(household_id) for recipe in self.user_repo.get_user_recipes(user_id).values()]
+        user_titles = set(recipe.title for recipe in all_user_recipes)
         user_recipes.extend([recipe for recipe in other_recipes if recipe.title not in user_titles])
         return user_recipes
 
-    def remove_duplicates_search(self, user_recipes: list[tuple[RecipeLite,int]],other_recipes: list[tuple[RecipeLite,int]]) -> list[tuple[RecipeLite,int]]:
-        user_titles = set(recipe[0].title for recipe in user_recipes)
+    def remove_duplicates_search(self, user_recipes: list[tuple[RecipeLite,int]],other_recipes: list[tuple[RecipeLite,int]], household_id: str) -> list[tuple[RecipeLite,int]]:
+        all_user_recipes = [recipe for user_id in self.repo.get_user_ids(household_id) for recipe in self.user_repo.get_user_recipes(user_id).values()]
+        user_titles = set(recipe.title for recipe in all_user_recipes)
         user_recipes.extend([recipe for recipe in other_recipes if recipe[0].title not in user_titles])
         return user_recipes
     
