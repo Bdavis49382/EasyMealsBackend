@@ -17,8 +17,8 @@ async def update_recipe(request: Request,recipe_id: str, recipe: Recipe, control
     return controller.update_recipe(request.state.user_id, recipe_id, recipe)
 
 @router.post('/upload/image')
-async def upload_image(file: UploadFile, controller: Annotated[FeedController, Depends()]) -> str:
-    return await controller.upload_image(file)
+async def upload_image(request: Request, file: UploadFile, controller: Annotated[FeedController, Depends()]) -> str:
+    return await controller.upload_image(request.state.user_id,file)
 
 @router.get("/")
 async def get_feed(request: Request, controller: Annotated[FeedController, Depends()], page: int = 0) -> list[RecipeLite]:
@@ -31,6 +31,10 @@ async def get_feed(request: Request, controller: Annotated[FeedController, Depen
 @router.get("/tags")
 async def get_user_tags(request: Request, controller: Annotated[FeedController, Depends()]) -> list[str]:
     return controller.get_user_tags(request.state.user_id)
+
+@router.get("/image/{file_path}")
+def get_image(file_path: str, controller: Annotated[FeedController, Depends()]):
+    return controller.get_image(file_path)
 
 @router.get('/search')
 async def search_feed(query: str, request: Request, controller: Annotated[FeedController, Depends()]) -> list[RecipeLite]:

@@ -4,6 +4,7 @@ from models.Recipe import Recipe, RecipeLite, RecipeOut
 from controllers.allRecipes import AllRecipes
 from uuid import uuid4
 from fastapi import UploadFile, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from typing import Annotated
 from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
@@ -27,11 +28,11 @@ class FeedController:
     def update_recipe(self, user_id: str, recipe_id: str, recipe: Recipe) -> str:
         return self.user_repo.update_recipe(user_id, recipe_id, recipe)
 
-    async def upload_image(self, file: UploadFile) -> str:
-        blob = bucket.blob(uuid4().__str__())
+    async def upload_image(self, user_id:str, file: UploadFile) -> str:
+        file_name = user_id + "/" + uuid4().__str__()
+        blob = bucket.blob(file_name)
         blob.upload_from_string(await file.read(), content_type=file.content_type)
-        blob.make_public()
-        return blob.public_url
+        return file_name
     
     def _tag_hits(self, recipe: RecipeOut, tags: set[str]):
         return len([x for x in recipe.tags if x.upper() in tags])
@@ -161,3 +162,14 @@ class FeedController:
     def sort_search_recipes(self, recipes: list[tuple[RecipeLite,int]]) -> list[RecipeLite]:
         recipes.sort(key = lambda recipe: recipe[1], reverse = True)
         return [x[0] for x in recipes if x[1] != 0]
+
+    def get_image(file_path: str):
+        try:
+            blob = bucket.blob(file_path)
+            if not blob.exists():
+                raise HTTPException(status_code=404, detail="Image Not Found")
+            
+            signed_url = blob.generate_signed_url(expiration=3600)
+            return RedirectResponse(url = signed_url)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
