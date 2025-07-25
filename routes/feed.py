@@ -32,8 +32,8 @@ async def get_feed(request: Request, controller: Annotated[FeedController, Depen
 async def get_user_tags(request: Request, controller: Annotated[FeedController, Depends()]) -> list[str]:
     return controller.get_user_tags(request.state.user_id)
 
-@router.get("/image/{file_path}")
-def get_image(file_path: str, controller: Annotated[FeedController, Depends()]):
+@router.get("/image/{user_id}/{file_path}")
+def get_image(user_id: str, file_path: str, controller: Annotated[FeedController, Depends()]):
     return controller.get_image(file_path)
 
 @router.get('/search')
