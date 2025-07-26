@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, UploadFile, Depends
+from fastapi.responses import RedirectResponse
 from models.Recipe import Recipe, RecipeLite
 from controllers.feedController import FeedController
 from typing import Annotated
@@ -33,8 +34,8 @@ async def get_user_tags(request: Request, controller: Annotated[FeedController, 
     return controller.get_user_tags(request.state.user_id)
 
 @router.get("/image/{user_id}/{file_path}")
-def get_image(user_id: str, file_path: str, controller: Annotated[FeedController, Depends()]):
-    return controller.get_image(file_path)
+def get_image(user_id: str, file_path: str, controller: Annotated[FeedController, Depends()]) -> RedirectResponse:
+    return controller.get_image(user_id + "/" + file_path)
 
 @router.get('/search')
 async def search_feed(query: str, request: Request, controller: Annotated[FeedController, Depends()]) -> list[RecipeLite]:

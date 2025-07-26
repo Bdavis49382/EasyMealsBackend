@@ -1,4 +1,5 @@
 from firebase import bucket
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from models.Recipe import Recipe, RecipeLite, RecipeOut
 from controllers.allRecipes import AllRecipes
@@ -29,7 +30,7 @@ class FeedController:
         return self.user_repo.update_recipe(user_id, recipe_id, recipe)
 
     async def upload_image(self, user_id:str, file: UploadFile) -> str:
-        file_name = user_id + "/" + uuid4().__str__()
+        file_name = user_id + "/" + uuid4().__str__() + Path(file.filename).suffix
         blob = bucket.blob(file_name)
         blob.upload_from_string(await file.read(), content_type=file.content_type)
         return file_name
@@ -163,13 +164,13 @@ class FeedController:
         recipes.sort(key = lambda recipe: recipe[1], reverse = True)
         return [x[0] for x in recipes if x[1] != 0]
 
-    def get_image(file_path: str):
+    def get_image(self, file_path: str) -> RedirectResponse:
         try:
             blob = bucket.blob(file_path)
             if not blob.exists():
                 raise HTTPException(status_code=404, detail="Image Not Found")
             
-            signed_url = blob.generate_signed_url(expiration=3600)
+            signed_url = blob.generate_signed_url(expiration=timedelta(hours=1), version="v4")
             return RedirectResponse(url = signed_url)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
