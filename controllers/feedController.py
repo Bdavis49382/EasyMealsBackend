@@ -169,11 +169,14 @@ class FeedController:
 
     def get_image(self, file_path: str) -> RedirectResponse:
         try:
+            print('getting image...')
             blob = bucket.blob(file_path)
+            print('blob created...')
             if not blob.exists():
                 raise HTTPException(status_code=404, detail="Image Not Found")
             
             signed_url = blob.generate_signed_url(expiration=timedelta(hours=1), version="v4")
+            print('signed url: ',signed_url)
             return RedirectResponse(url = signed_url)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
