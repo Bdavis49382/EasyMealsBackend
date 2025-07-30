@@ -15,7 +15,7 @@ async def add_recipe(request: Request, recipe: Recipe, controller: Annotated[Fee
 
 @router.put("/{recipe_id}")
 async def update_recipe(request: Request,recipe_id: str, recipe: Recipe, controller: Annotated[FeedController, Depends()]) -> str:
-    return controller.update_recipe(request.state.user_id, recipe_id, recipe)
+    return controller.update_recipe(request.state.household_id, recipe_id, recipe)
 
 @router.post('/upload/image')
 async def upload_image(request: Request, file: UploadFile, controller: Annotated[FeedController, Depends()]) -> str:

@@ -49,8 +49,12 @@ def test_add_recipe_has_src_name(feed_controller,mock_user_repo, mock_user, mock
     mock_user_repo.add_recipe.assert_called_once()
     assert mock_user_repo.add_recipe.call_args[0][1].src_name == "This Guy's Mom"
 
-def test_update_recipe(feed_controller,mock_user_repo, mock_user, mock_recipe):
+def test_update_recipe(feed_controller,mock_user_repo, mock_household_repo, mock_recipe):
     # Arrange
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_recipe.id = "1"
+    mock_recipe.author_id = "1"
+    mock_user_repo.get_user_recipes.return_value = { "1": mock_recipe }
 
     # Act
     result = feed_controller.update_recipe("1","1", mock_recipe)

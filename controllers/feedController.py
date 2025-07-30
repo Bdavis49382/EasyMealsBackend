@@ -26,8 +26,11 @@ class FeedController:
         recipe_id = self.user_repo.add_recipe(user_id, recipe)
         return recipe_id
     
-    def update_recipe(self, user_id: str, recipe_id: str, recipe: Recipe) -> str:
-        return self.user_repo.update_recipe(user_id, recipe_id, recipe)
+    def update_recipe(self, household_id: str, recipe_id: str, recipe: Recipe) -> str:
+        old_recipe = [recipe for user_id in self.repo.get_user_ids(household_id) for recipe in self.user_repo.get_user_recipes(user_id).values() if recipe.id == recipe_id]
+        if len(old_recipe) != 1:
+            return ""
+        return self.user_repo.update_recipe(old_recipe[0].author_id, recipe_id, recipe)
 
     async def upload_image(self, user_id:str, file: UploadFile) -> str:
         file_name = user_id + "/" + uuid4().__str__() + Path(file.filename).suffix
