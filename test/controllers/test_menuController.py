@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
 from controllers.menuController import MenuController
-from controllers.allRecipes import AllRecipes
+from repositories.webRecipesRepository import RecipeData, WebRecipesRepository
 
 @fixture
 def mock_household_repo():
@@ -14,12 +14,12 @@ def mock_user_repo():
     return MagicMock(spec=UserRepository)
 
 @fixture
-def mock_all_recipes():
-    return MagicMock(spec=AllRecipes)
+def mock_webRecipesRepo():
+    return MagicMock(spec=WebRecipesRepository)
 
 @fixture
-def menu_controller(mock_household_repo, mock_user_repo, mock_all_recipes):
-    return MenuController(mock_household_repo, mock_user_repo, mock_all_recipes)
+def menu_controller(mock_household_repo, mock_user_repo, mock_webRecipesRepo):
+    return MenuController(mock_household_repo, mock_user_repo, mock_webRecipesRepo)
 
 
 def test_add_recipe(menu_controller,mock_household_repo, mock_menu_item, mock_recipe):
@@ -152,3 +152,17 @@ def test_update_menu_item(menu_controller, mock_household_repo, mock_menu_item):
 
     #Assert
     mock_household_repo.update_menu_item.assert_called_once()
+
+def test_get_recipe_online(menu_controller, mock_webRecipesRepo):
+    #Arrange
+    mock_recipe_data = MagicMock(spec=RecipeData)
+    mock_recipe_data.recipe = "fake recipe"
+    mock_recipe_data.failures = []
+    mock_webRecipesRepo.get.return_value = mock_recipe_data
+
+    #Act
+    result = menu_controller.get_recipe_online("fake link")
+
+    #Assert
+    assert result == mock_recipe_data.recipe
+    

@@ -1,0 +1,97 @@
+import urllib.request, urllib.parse, ssl, json
+from models.Recipe import Recipe
+from bs4 import BeautifulSoup
+from pydantic_core import ValidationError
+from functools import lru_cache
+
+class WebRecipesRepository:
+    def get_soup(self,url:str) -> BeautifulSoup:
+        return WebRecipesRepository._get_soup(url)
+    
+    @lru_cache
+    @staticmethod
+    def _get_soup(url:str) -> BeautifulSoup:
+        req = urllib.request.Request(url)
+        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
+
+        handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
+        opener = urllib.request.build_opener(handler)
+        response = opener.open(req)
+        html_content = response.read()
+
+        return BeautifulSoup(html_content, 'html.parser')
+    
+    def get_recipe_dict(self, soup):
+        info = soup.find("script",attrs={"type":"application/ld+json"})
+        if info is None:
+            return {}
+        data = json.loads(info.contents[0])
+        if type(data) == list and len(data) > 0:
+            return data[0]
+        elif '@graph' in data:
+            return [x for x in data['@graph'] if x['@type'] == 'Recipe'][0]
+        else:
+            return data
+
+    def get(self, url):
+        """
+        'url' from 'search' method.
+            ex. "/recipe/106349/beef-and-spinach-curry/"
+        """
+        # base_url = "https://allrecipes.com/"
+        # url = base_url + uri
+
+        soup = self.get_soup(url)
+        return RecipeData(url, self.get_recipe_dict(soup))
+
+class RecipeData:
+    def __init__(self, url, recipe_dict):
+        self.url = url
+        self.recipe_dict = recipe_dict
+        self.failures = []
+        self.recipe = self.get_recipe()
+    
+    def get_recipe(self) -> Recipe | None:
+        try:
+            full_recipe = Recipe(
+                title = self.get_value('name'),
+                instructions = [self.get_value("text",x) for x in self.get_value('recipeInstructions', expects_list=True) if "@type" in x and x["@type"] == "HowToStep"],
+                img_link = self.get_value('url',self.get_value('image', expects_dict=True)),
+                servings = self.get_value('recipeYield'),
+                time_estimate= [self.convert_time(self.get_value('totalTime'))],
+                src_link= self.url,
+                src_name=urllib.parse.urlparse(self.url).hostname,
+                ingredients= self.get_value('recipeIngredient', expects_list=True)
+            )
+            return full_recipe
+        except ValidationError as e:
+            print(e)
+            return None
+
+    def get_value(self, key: str, recipe: dict| list = None, expects_list: bool = False, expects_dict: bool = False):
+        if recipe == None:
+            recipe = self.recipe_dict
+        
+        if type(recipe) == str:
+            return recipe
+        
+        if type(recipe) == list:
+            return recipe[0]
+        elif key in recipe:
+            if type(recipe[key]) == list and expects_list == False:
+                return recipe[key][0]
+            return recipe[key]
+        else:
+            self.failures.append(key)
+            if expects_list:
+                return []
+            elif expects_dict:
+                return {}
+            else:
+                return None
+    
+    def convert_time(self, str: str | None):
+        if str == None:
+            return None
+        minutes = int(str.replace('P','').replace('T','').replace('M',''))
+        return f'{minutes // 60} hrs {minutes % 60} mins'
