@@ -42,7 +42,7 @@ async def get_recipe_by_index(request: Request, index: str, controller: Annotate
 async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]) -> Recipe:
     recipe = controller.get_recipe_online(link)
     if recipe == None:
-        return Response(status_code=status.HTTP_204_NO_CONTENT)
+        raise HTTPException(status_code=400, detail="Website does not provide formatted recipe data.")
     return recipe
 
 @router.post('/finish/{recipe_id}')
