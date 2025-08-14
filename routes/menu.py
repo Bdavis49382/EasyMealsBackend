@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends, Response, status
 from models.Household import ActiveItems
 from models.Recipe import Recipe, MenuItem, MenuItemLite, RecipeOut, MenuItemOut
 from datetime import datetime
@@ -40,7 +40,10 @@ async def get_recipe_by_index(request: Request, index: str, controller: Annotate
 
 @router.get('/online')
 async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]) -> Recipe:
-    return controller.get_recipe_online(link)
+    recipe = controller.get_recipe_online(link)
+    if recipe == None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return recipe
 
 @router.post('/finish/{recipe_id}')
 async def finish_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None) -> list[MenuItemLite]:

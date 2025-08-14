@@ -3,6 +3,7 @@ from models.Recipe import Recipe
 from bs4 import BeautifulSoup
 from pydantic_core import ValidationError
 from functools import lru_cache
+from fastapi import HTTPException
 
 class WebRecipesRepository:
     def get_soup(self,url:str) -> BeautifulSoup:
@@ -11,15 +12,18 @@ class WebRecipesRepository:
     @lru_cache
     @staticmethod
     def _get_soup(url:str) -> BeautifulSoup:
-        req = urllib.request.Request(url)
-        req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
+        try:
+            req = urllib.request.Request(url)
+            req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
 
-        handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
-        opener = urllib.request.build_opener(handler)
-        response = opener.open(req)
-        html_content = response.read()
+            handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
+            opener = urllib.request.build_opener(handler)
+            response = opener.open(req)
+            html_content = response.read()
 
-        return BeautifulSoup(html_content, 'html.parser')
+            return BeautifulSoup(html_content, 'html.parser')
+        except:
+            raise HTTPException(status_code=404, detail="Invalid provided URL.")
     
     def get_recipe_dict(self, soup):
         info = soup.find("script",attrs={"type":"application/ld+json"})
