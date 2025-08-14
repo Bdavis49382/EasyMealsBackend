@@ -23,7 +23,6 @@ class AllRecipes():
 
         articles = soup.find_all("a", {"class": card_class})
 
-        print('getting recipes')
         return [RecipeCard(a).get_recipe_lite(tag=tag) for a in articles if "-recipe-" in a["href"] or "/recipe/" in a['href']]
 
     def search(self,search_string) -> list[RecipeLite]:
@@ -35,19 +34,19 @@ class AllRecipes():
 
         url = base_url + query_url
 
-        return AllRecipes.get_recipes_from_page(url,  "mntl-card-list-card--extendable")
+        return self.get_recipes_from_page(url,  "mntl-card-list-card--extendable")
     
     def get_main_dishes(self) -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card',"MainDishes")
+        return self.get_recipes_from_page('https://www.allrecipes.com/recipes/80/main-dish/','mntl-document-card',"MainDishes")
     
     def get_soups(self) -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/16369/soups-stews-and-chili/soup/", 'mntl-document-card',"Soups")
+        return self.get_recipes_from_page("https://www.allrecipes.com/recipes/16369/soups-stews-and-chili/soup/", 'mntl-document-card',"Soups")
     
     def get_desserts(self) -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/79/desserts/", 'mntl-document-card',"Desserts")
+        return self.get_recipes_from_page("https://www.allrecipes.com/recipes/79/desserts/", 'mntl-document-card',"Desserts")
 
     def get_breakfasts(self) -> list[RecipeLite]:
-        return AllRecipes.get_recipes_from_page("https://www.allrecipes.com/recipes/78/breakfast-and-brunch/", 'mntl-document-card',"Breakfast")
+        return self.get_recipes_from_page("https://www.allrecipes.com/recipes/78/breakfast-and-brunch/", 'mntl-document-card',"Breakfast")
     
     def get_recipes_by_tag(self, tags: list[str]) -> list[RecipeLite]:
         out = []
