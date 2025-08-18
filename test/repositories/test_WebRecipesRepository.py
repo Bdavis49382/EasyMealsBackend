@@ -116,6 +116,7 @@ def test_get_live_other():
     assert result != None
     assert len(result.failures) == 0
     assert result.recipe.title == 'Best Fluffy Pancake Recipe'
+    assert len(result.recipe.instructions) > 0
 
 def test_get_live_no_data():
     # Act

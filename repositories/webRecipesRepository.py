@@ -97,5 +97,8 @@ class RecipeData:
     def convert_time(self, str: str | None):
         if str == None:
             return None
-        minutes = int(str.replace('P','').replace('T','').replace('M',''))
-        return f'{minutes // 60} hrs {minutes % 60} mins'
+        try:
+            minutes = int(str.replace('P','').replace('T','').replace('M',''))
+            return f'{minutes // 60} hrs {minutes % 60} mins'
+        except:
+            return None
