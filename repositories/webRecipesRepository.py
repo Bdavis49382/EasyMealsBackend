@@ -59,10 +59,10 @@ class RecipeData:
         try:
             full_recipe = Recipe(
                 title = self.get_value('name'),
-                instructions = [self.get_value("text",x) for x in self.get_value('recipeInstructions', expects_list=True) if "@type" in x and x["@type"] == "HowToStep"],
+                instructions = self.get_instructions(),
                 img_link = self.get_value('url',self.get_value('image', expects_dict=True)),
-                servings = self.get_value('recipeYield'),
-                time_estimate= [self.convert_time(self.get_value('totalTime'))],
+                servings = self.get_servings(),
+                time_estimate= self.convert_time(self.get_value('totalTime')),
                 src_link= self.url,
                 src_name=urllib.parse.urlparse(self.url).hostname,
                 ingredients= self.get_value('recipeIngredient', expects_list=True)
@@ -99,6 +99,24 @@ class RecipeData:
             return None
         try:
             minutes = int(str.replace('P','').replace('T','').replace('M',''))
-            return f'{minutes // 60} hrs {minutes % 60} mins'
+            return [f'{minutes // 60} hrs {minutes % 60} mins']
         except:
+            return []
+    
+    def get_servings(self):
+        servings = self.get_value('recipeYield')
+        if servings == None:
             return None
+        else:
+            return str(servings)
+    
+    def get_instructions(self):
+        raw_instructions = self.get_value('recipeInstructions', expects_list=True)
+        instructions = []
+        for step in raw_instructions:
+            if '@type' in step and step['@type'] == 'HowToStep':
+                instructions.append(self.get_value("text", recipe=step))
+            elif '@type' in step and step['@type'] == 'HowToSection':
+                section = self.get_value('itemListElement',recipe=step)
+                instructions.append(self.get_value("text", recipe=section))
+        return instructions
