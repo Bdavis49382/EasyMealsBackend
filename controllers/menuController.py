@@ -3,15 +3,20 @@ from fastapi import Depends, HTTPException
 from models.Record import Record
 from models.Recipe import Recipe, MenuItemLite, RecipeOut, RecipeLite, MenuItemOut, MenuItem
 from controllers.allRecipes import AllRecipes
+from repositories.webRecipesRepository import RecipeData
 from typing import Annotated
 from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
+from repositories.webRecipesRepository import WebRecipesRepository
 
 class MenuController:
-    def __init__(self, repo: Annotated[HouseholdRepository, Depends()], user_repo: Annotated[UserRepository, Depends()], all_recipes: Annotated[AllRecipes, Depends()]):
+    def __init__(self, 
+                 repo: Annotated[HouseholdRepository, Depends()], 
+                 user_repo: Annotated[UserRepository, Depends()], 
+                 web_recipes_repo: Annotated[WebRecipesRepository, Depends()]):
         self.repo = repo
         self.user_repo = user_repo
-        self.all_recipes = all_recipes
+        self.web_recipes_repo = web_recipes_repo
 
     def add_recipe(self, household_id, menu_item: MenuItem, user_id: str):
         # save the recipe first before adding it to the menu
@@ -60,19 +65,10 @@ class MenuController:
         return None
     
     def get_recipe_online(self, link: str) -> Recipe:
-        raw_recipe = self.all_recipes.get(link)
-        if len(raw_recipe.failures):
-            print('failed to retrieve these items, potentially outdated html info:',raw_recipe.failures)
-        recipe = Recipe(
-            title=raw_recipe.name, 
-            instructions=raw_recipe.steps,
-            img_link=raw_recipe.image, 
-            servings=raw_recipe.nb_servings, 
-            src_link=link,
-            src_name="Allrecipes.com",
-            ingredients=raw_recipe.ingredients,
-            time_estimate=[raw_recipe.total_time, raw_recipe.prep_time, raw_recipe.cook_time])
-        return recipe
+        recipe_data: RecipeData = self.web_recipes_repo.get(link)
+        if len(recipe_data.failures):
+            print('failed to retrieve these items:',recipe_data.failures)
+        return recipe_data.recipe
     
     def finish_recipe(self, household_id: str, recipe_id: str, user_id : str, rating: int | None = None) -> None:
         # remove from menu

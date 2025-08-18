@@ -82,6 +82,30 @@ def test_get_recipe_nonexistant(client, fake_header, mock_menu_item_dict, mock_r
     # Assert
     assert response.status_code == 404
 
+def test_get_recipe_online(client, fake_header):
+    # Arrange
+    uid, header = fake_header
+
+    # Act
+    response = client.get(f"menu/online?link=https://www.allrecipes.com/recipe/218863/slow-cooker-cilantro-lime-chicken/", headers=header)
+
+    # Assert
+    assert response.status_code == 200
+    recipe = response.json()
+    assert recipe['title'] == "Slow Cooker Lime Cilantro Chicken"
+
+def test_get_recipe_online_not_all_recipes(client, fake_header):
+    # Arrange
+    uid, header = fake_header
+
+    # Act
+    response = client.get(f"menu/online?link=https://lilluna.com/dr-pepper-ribs/", headers=header)
+
+    # Assert
+    assert response.status_code == 200
+    recipe = response.json()
+    assert recipe['title'] == "Dr. Pepper Ribs Recipe"
+
 def test_get_recipe_by_index(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
     # Arrange
     uid, header = fake_header
