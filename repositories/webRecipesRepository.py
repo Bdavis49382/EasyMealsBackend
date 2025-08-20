@@ -96,7 +96,7 @@ class RecipeData:
     
     def convert_time(self, str: str | None):
         if str == None:
-            return None
+            return []
         try:
             minutes = int(str.replace('P','').replace('T','').replace('M',''))
             return [f'{minutes // 60} hrs {minutes % 60} mins']
