@@ -99,7 +99,7 @@ class RecipeData:
             result = re.findall('\\d{1,2}\\.\\d+', ingredients[i])
             for decimal in result:
                 parts = decimal.split(".")
-                fraction = f"{parts[0] if parts[0] != '0' else ""} {self.fractionize(parts[1].strip())}".strip()
+                fraction = f"{parts[0] if parts[0] != '0' else ''} {self.fractionize(parts[1].strip())}".strip()
                 ingredients[i] = ingredients[i].replace(decimal,fraction)
             
         return ingredients
