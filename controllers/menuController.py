@@ -70,13 +70,16 @@ class MenuController:
             print('failed to retrieve these items:',recipe_data.failures)
         return recipe_data.recipe
     
-    def finish_recipe(self, household_id: str, recipe_id: str, user_id : str, rating: int | None = None) -> None:
+    def finish_recipe(self, household_id: str, recipe_id: str,rating: int | None = None) -> None:
         # remove from menu
         self.repo.remove_menu_item(household_id, recipe_id)
 
         #add a record for this interaction
         record = Record(household_id=household_id,timestamp=datetime.now(timezone.utc), rating = rating)
-        self.user_repo.add_recipe_record(user_id, recipe_id, record)
+        recipe = self.get_recipe(household_id, recipe_id)
+        if recipe == None:
+            raise HTTPException(status_code=404,detail="Issue occurred with finding recipe to add rating to.")
+        self.user_repo.add_recipe_record(recipe.author_id, recipe_id, record)
 
     def update_menu_item(self, household_id: str, index: int, updated: MenuItem) -> None:
         self.repo.update_menu_item(household_id, index, updated)

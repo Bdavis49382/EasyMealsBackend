@@ -145,6 +145,27 @@ def test_get_full(test_recipe_dict):
     assert recipe.time_estimate[0] == "4 hrs 15 mins"
     assert recipe.servings == test_recipe_dict['recipeYield']
 
+def test_get_decimals_to_fractions(test_recipe_dict):
+    # Arrange
+    test_recipe_dict["recipeIngredient"].append("1.5 cups milk with 0.3333 l of cream and 1/5 baking soda 0.2 lb")
+    # Act
+    recipe_data = RecipeData("https://www.fakerecipe.com/recipe1",test_recipe_dict)
+    recipe = recipe_data.recipe
+
+    # Assert
+    assert recipe != None
+    assert recipe.title == test_recipe_dict['name']
+    assert recipe.img_link == test_recipe_dict['image']['url']
+    assert len(recipe.ingredients) == len(test_recipe_dict['recipeIngredient'])
+    assert recipe.ingredients[0] == test_recipe_dict['recipeIngredient'][0]
+    assert recipe.ingredients[-1] == "1 ½ cups milk with ⅓ l of cream and 1/5 baking soda .2 lb"
+    assert len(recipe.instructions) == len(test_recipe_dict['recipeInstructions'])
+    assert recipe.instructions[0] == test_recipe_dict['recipeInstructions'][0]['text']
+    assert recipe.src_link == "https://www.fakerecipe.com/recipe1"
+    assert recipe.src_name == "www.fakerecipe.com"
+    assert recipe.time_estimate[0] == "4 hrs 15 mins"
+    assert recipe.servings == test_recipe_dict['recipeYield']
+
 def test_get_handles_non_essential_not_there(test_recipe_dict):
     # Arrange
     del test_recipe_dict['recipeYield']

@@ -47,7 +47,7 @@ async def get_recipe_online(link:str, controller: Annotated[MenuController, Depe
 
 @router.post('/finish/{recipe_id}')
 async def finish_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None) -> list[MenuItemLite]:
-    controller.finish_recipe(request.state.household_id, recipe_id, request.state.user_id, rating)
+    controller.finish_recipe(request.state.household_id, recipe_id, rating)
     return controller.get_menu(request.state.household_id)
 
 @router.patch("/index/{index}")
