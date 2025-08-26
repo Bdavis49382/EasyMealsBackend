@@ -73,6 +73,7 @@ class RecipeData:
             print(e)
             return None
     
+    
     def get_ingredients(self):
         return self.convert_fractions(self.get_value('recipeIngredient', expects_list=True))
     
@@ -96,6 +97,7 @@ class RecipeData:
 
     def convert_fractions(self, ingredients: list[str]) -> list[str]:
         for i in range(len(ingredients)):
+            ingredients[i] = self.clean_html_entities(ingredients[i])
             result = re.findall('\\d{1,2}\\.\\d+', ingredients[i])
             for decimal in result:
                 parts = decimal.split(".")
@@ -104,21 +106,22 @@ class RecipeData:
             
         return ingredients
 
-
-
     def get_value(self, key: str, recipe: dict| list = None, expects_list: bool = False, expects_dict: bool = False):
         if recipe == None:
             recipe = self.recipe_dict
         
         if type(recipe) == str:
-            return recipe
+            return self.clean_html_entities(recipe)
         
         if type(recipe) == list:
-            return recipe[0]
+            return self.clean_html_entities(recipe[0])
         elif key in recipe:
             if type(recipe[key]) == list and expects_list == False:
                 return recipe[key][0]
-            return recipe[key]
+            elif expects_list == True or expects_dict == True:
+                return recipe[key]
+            else:
+                return self.clean_html_entities(recipe[key])
         else:
             self.failures.append(key)
             if expects_list:
@@ -127,6 +130,10 @@ class RecipeData:
                 return {}
             else:
                 return None
+    
+    def clean_html_entities(self, val: str) -> str:
+        """ If there are any html entities replace them with a character equivalent."""
+        return val.replace('&#38;','&').replace('&#39;',"\'").replace('&#34;','\"')
     
     def convert_time(self, str: str | None):
         if str == None:
