@@ -73,38 +73,6 @@ class RecipeData:
             print(e)
             return None
     
-    def get_ingredients(self):
-        return self.convert_fractions(self.get_value('recipeIngredient', expects_list=True))
-    
-    def fractionize(self, decimal_value: str):
-        table = {
-            "5":"½",
-            "25":"¼",
-            "75":"¾",
-            "125":"⅛",
-            "375":"⅜",
-            "625":"⅝",
-            "875":"⅞",
-            "3":"⅓",
-            "6":"⅔"
-
-        }
-        for key in table.keys():
-            if decimal_value.startswith(key):
-                return table[key]
-        return "." + decimal_value
-
-    def convert_fractions(self, ingredients: list[str]) -> list[str]:
-        for i in range(len(ingredients)):
-            result = re.findall('\\d{1,2}\\.\\d+', ingredients[i])
-            for decimal in result:
-                parts = decimal.split(".")
-                fraction = f"{parts[0] if parts[0] != '0' else ''} {self.fractionize(parts[1].strip())}".strip()
-                ingredients[i] = ingredients[i].replace(decimal,fraction)
-            
-        return ingredients
-
-
     
     def get_ingredients(self):
         return self.convert_fractions(self.get_value('recipeIngredient', expects_list=True))
