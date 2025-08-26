@@ -1,7 +1,7 @@
 from repositories.webRecipesRepository import RecipeData, WebRecipesRepository
 from pytest import fixture
 
-@fixture(scope="module")
+@fixture(scope="function")
 def test_recipe_dict():
     return {
         "image": {
@@ -166,6 +166,29 @@ def test_get_decimals_to_fractions(test_recipe_dict):
     assert recipe.time_estimate[0] == "4 hrs 15 mins"
     assert recipe.servings == test_recipe_dict['recipeYield']
 
+def test_get_replace_html_entities(test_recipe_dict):
+    test_recipe_dict["recipeIngredient"].append("The wife&#39;s favorite recipe &#38; mine")
+    test_recipe_dict["recipeInstructions"].append({"text":"The wife&#39;s favorite recipe &#38; mine","@type":"HowToStep"})
+    test_recipe_dict['name'] = "The wife&#39;s favorite recipe &#38; mine"
+    # Act
+    recipe_data = RecipeData("https://www.fakerecipe.com/recipe1",test_recipe_dict)
+    recipe = recipe_data.recipe
+
+    # Assert
+    assert recipe != None
+    assert recipe.title == "The wife's favorite recipe & mine"
+    assert recipe.img_link == test_recipe_dict['image']['url']
+    assert len(recipe.ingredients) == len(test_recipe_dict['recipeIngredient'])
+    assert recipe.ingredients[0] == test_recipe_dict['recipeIngredient'][0]
+    assert recipe.ingredients[-1] == "The wife's favorite recipe & mine"
+    assert len(recipe.instructions) == len(test_recipe_dict['recipeInstructions'])
+    assert recipe.instructions[0] == test_recipe_dict['recipeInstructions'][0]['text']
+    assert recipe.instructions[-1] == "The wife's favorite recipe & mine"
+    assert recipe.src_link == "https://www.fakerecipe.com/recipe1"
+    assert recipe.src_name == "www.fakerecipe.com"
+    assert recipe.time_estimate[0] == "4 hrs 15 mins"
+    assert recipe.servings == test_recipe_dict['recipeYield']
+
 def test_get_handles_non_essential_not_there(test_recipe_dict):
     # Arrange
     del test_recipe_dict['recipeYield']
@@ -190,9 +213,6 @@ def test_get_handles_non_essential_not_there(test_recipe_dict):
     assert recipe.src_name == "www.fakerecipe.com"
     assert recipe.time_estimate[0] == "4 hrs 15 mins"
 
-    # Tear Down
-    test_recipe_dict['recipeYield'] = '15'
-
 def test_get_handles_essential_not_there(test_recipe_dict):
     # Arrange
     del test_recipe_dict['name']
@@ -205,6 +225,3 @@ def test_get_handles_essential_not_there(test_recipe_dict):
     assert recipe == None
     assert len(recipe_data.failures) == 1
     assert recipe_data.failures[0] == 'name'
-
-    # Tear Down
-    test_recipe_dict['name'] = 'fake recipe'

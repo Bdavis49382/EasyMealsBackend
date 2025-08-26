@@ -105,20 +105,55 @@ class RecipeData:
         return ingredients
 
 
+    
+    def get_ingredients(self):
+        return self.convert_fractions(self.get_value('recipeIngredient', expects_list=True))
+    
+    def fractionize(self, decimal_value: str):
+        table = {
+            "5":"½",
+            "25":"¼",
+            "75":"¾",
+            "125":"⅛",
+            "375":"⅜",
+            "625":"⅝",
+            "875":"⅞",
+            "3":"⅓",
+            "6":"⅔"
+
+        }
+        for key in table.keys():
+            if decimal_value.startswith(key):
+                return table[key]
+        return "." + decimal_value
+
+    def convert_fractions(self, ingredients: list[str]) -> list[str]:
+        for i in range(len(ingredients)):
+            ingredients[i] = self.clean_html_entities(ingredients[i])
+            result = re.findall('\\d{1,2}\\.\\d+', ingredients[i])
+            for decimal in result:
+                parts = decimal.split(".")
+                fraction = f"{parts[0] if parts[0] != '0' else ''} {self.fractionize(parts[1].strip())}".strip()
+                ingredients[i] = ingredients[i].replace(decimal,fraction)
+            
+        return ingredients
 
     def get_value(self, key: str, recipe: dict| list = None, expects_list: bool = False, expects_dict: bool = False):
         if recipe == None:
             recipe = self.recipe_dict
         
         if type(recipe) == str:
-            return recipe
+            return self.clean_html_entities(recipe)
         
         if type(recipe) == list:
-            return recipe[0]
+            return self.clean_html_entities(recipe[0])
         elif key in recipe:
             if type(recipe[key]) == list and expects_list == False:
                 return recipe[key][0]
-            return recipe[key]
+            elif expects_list == True or expects_dict == True:
+                return recipe[key]
+            else:
+                return self.clean_html_entities(recipe[key])
         else:
             self.failures.append(key)
             if expects_list:
@@ -127,6 +162,10 @@ class RecipeData:
                 return {}
             else:
                 return None
+    
+    def clean_html_entities(self, val: str) -> str:
+        """ If there are any html entities replace them with a character equivalent."""
+        return val.replace('&#38;','&').replace('&#39;',"\'").replace('&#34;','\"')
     
     def convert_time(self, str: str | None):
         if str == None:
