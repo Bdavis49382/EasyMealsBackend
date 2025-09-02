@@ -36,3 +36,8 @@ async def edit_item(req: Request, index: int, shopping_item: ShoppingItem,contro
 async def remove_item(req: Request, index: int,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
     controller.remove_item(req.state.household_id, index)
     return controller.get_shopping_list(req.state.household_id)
+
+@router.patch("/move")
+async def move_item(req: Request, from_index: str, to_index:str,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.move_item(req.state.household_id, int(from_index), int(to_index))
+    return controller.get_shopping_list(req.state.household_id)

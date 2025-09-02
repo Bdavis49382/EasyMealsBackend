@@ -82,6 +82,9 @@ class ShoppingListController:
 
     def remove_item(self, household_id: str, index: int) -> None:
         self.repo.remove_item(household_id, index)
+    
+    def move_item(self, household_id: str, from_index: int, to_index: int) -> None:
+        self.repo.move_item(household_id, from_index, to_index)
 
     def add_shopping_strings(self, household_id,item_strings: list[str], user_id: str, recipe_id: str) -> None:
         self.add_items(household_id,[ShoppingItem(name=name, user_id=user_id, recipe_id=recipe_id) for name in item_strings])

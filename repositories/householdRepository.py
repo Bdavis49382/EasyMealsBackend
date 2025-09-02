@@ -112,6 +112,15 @@ class HouseholdRepository:
         ref.update({
             "shopping_list": shopping_list
         })
+    
+    def move_item(self, household_id: str, from_index: int, to_index: int) -> None:
+        ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+
+        shopping_list.insert(to_index,shopping_list.pop(from_index))
+        ref.update({
+            "shopping_list": shopping_list
+        })
 
     def remove_item(self, household_id: str, index: int) -> None:
         ref = self.household_ref.document(household_id)
