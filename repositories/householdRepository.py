@@ -70,14 +70,17 @@ class HouseholdRepository:
 
     def add_items(self, household_id: str, items: list[ShoppingItem]) -> None:
         ref = self.household_ref.document(household_id)
-        shopping_list = ref.get().to_dict()['shopping_list']
-        shopping_list.extend(x.model_dump() for x in items)
+        shopping_list: list = ref.get().to_dict()['shopping_list']
+        for x in items:
+            shopping_list.insert(0, x.model_dump())
         ref.update({"shopping_list": shopping_list})
     
     def add_item(self, household_id: str, item: ShoppingItem) -> None:
         ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+        shopping_list.insert(0, item.model_dump())
         ref.update({
-            "shopping_list": ArrayUnion([item.model_dump()])
+            "shopping_list": shopping_list
         })
     
     def get_household(self, household_id: str) -> Household:
@@ -89,7 +92,7 @@ class HouseholdRepository:
     
     def check_item(self, household_id: str, index: int) -> None:
         ref = self.household_ref.document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
 
         shopping_list[index]["checked"] = not shopping_list[index]["checked"]
 
@@ -98,6 +101,15 @@ class HouseholdRepository:
             shopping_list[index]["time_checked"] = datetime.now(timezone.utc)
         else:
             shopping_list[index]["time_checked"] = None
+        
+        # Insert the checked item at the top of the checked items
+        checked = shopping_list.pop(index)
+        new_index = -1
+        for i,item in enumerate(shopping_list):
+            if item["checked"]:
+                new_index = i
+                break
+        shopping_list.insert(new_index, checked)
 
         ref.update({
             "shopping_list": shopping_list
