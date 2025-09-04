@@ -109,7 +109,10 @@ class HouseholdRepository:
             if item["checked"]:
                 new_index = i
                 break
-        shopping_list.insert(new_index, checked)
+        if new_index == -1:
+            shopping_list.append(checked)
+        else:
+            shopping_list.insert(new_index, checked)
 
         ref.update({
             "shopping_list": shopping_list
