@@ -161,7 +161,7 @@ def test_check_item_no_others(repo, mock_snapshot, mock_document, mock_household
     mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
-    repo.check_item("1", 0)
+    repo.check_item("1", '1')
 
     # Assert
     mock_document.update.assert_called_once()
@@ -174,11 +174,12 @@ def test_check_item_with_others(repo, mock_snapshot, mock_document, mock_househo
     other = deepcopy(mock_shopping_item_dict)
     other['checked'] = True
     other['name'] = "other"
+    other['id'] = '0'
     mock_household_dict['shopping_list'] = [mock_shopping_item_dict, other]
     mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
-    repo.check_item("1", 0)
+    repo.check_item("1", '1')
 
     # Assert
     mock_document.update.assert_called_once()
@@ -192,11 +193,12 @@ def test_uncheck_item_no_others(repo, mock_snapshot, mock_document, mock_househo
     mock_shopping_item_dict['checked'] = True
     other = deepcopy(mock_shopping_item_dict)
     other['checked'] = False
+    other['id'] = '0'
     mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
-    repo.check_item("1", 1)
+    repo.check_item("1", '1')
 
     # Assert
     mock_document.update.assert_called_once()
@@ -208,11 +210,12 @@ def test_uncheck_item_with_others(repo, mock_snapshot, mock_document, mock_house
     mock_shopping_item_dict['checked'] = True
     other = deepcopy(mock_shopping_item_dict)
     other['name'] = 'other'
+    other['id'] = '0'
     mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
-    repo.check_item("1", 1)
+    repo.check_item("1", "1")
 
     # Assert
     mock_document.update.assert_called_once()
@@ -227,7 +230,7 @@ def test_update_item(repo, mock_snapshot, mock_shopping_item, mock_document, moc
     mock_shopping_item.model_dump.return_value = "fake"
 
     # Act
-    repo.update_item("1", 0, mock_shopping_item)
+    repo.update_item("1", "1", mock_shopping_item)
 
     # Assert
     mock_document.update.assert_called_once()

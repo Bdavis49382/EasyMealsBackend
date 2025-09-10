@@ -55,22 +55,26 @@ def test_add_item(client, fake_header):
     assert response_list[0]['name'] == "fake item"
     assert response_list[0]['user_id'] == uid
 
-@mark.parametrize('index_value,safe',[(0, True), (1, False)])
-def test_check_item(client, index_value, safe, fake_header):
+@mark.parametrize('safe',[(True), (False)])
+def test_check_item(client, safe, fake_header):
     # Arrange
     uid, header = fake_header
 
     # Act
     response1 = client.post("shopping-list/",json={"name":"fake item", "user_id": uid}, headers=header)
-    response2 = client.post(f"shopping-list/check/{index_value}",json={"name":"fake item", "user_id": uid}, headers=header)
 
-    # Assert
     assert response1.status_code == 200
     response_list1 = response1.json()
     assert len(response_list1) == 1
     assert response_list1[0]['name'] == "fake item"
     assert response_list1[0]['user_id'] == uid
     assert response_list1[0]['checked'] == False
+    assert 'id' in response_list1[0]
+    id = response_list1[0]['id'] if safe else 'fake_id'
+
+    response2 = client.post(f"shopping-list/check/{id}",json={"name":"fake item", "user_id": uid}, headers=header)
+
+    # Assert
 
     if safe:
         assert response2.status_code == 200
@@ -83,24 +87,27 @@ def test_check_item(client, index_value, safe, fake_header):
         assert response2.status_code == 400
 
 
-@mark.parametrize('index_value,safe',[(0, True), (1, False)])
-def test_edit_item(client, index_value, safe, fake_header):
+@mark.parametrize('safe',[(True), (False)])
+def test_edit_item(client, safe, fake_header):
     # Arrange
     uid, header = fake_header
 
     # Act
     response1 = client.post("shopping-list/",json={"name":"fake item", "user_id": uid}, headers=header)
-    response2 = client.put(f"shopping-list/{index_value}",json={"name":"changed item", "user_id": uid}, headers=header)
+
+    assert response1.status_code == 200
+    response_list1 = response1.json()
+    assert len(response_list1) == 1
+    assert response_list1[0]['name'] == "fake item"
+    assert response_list1[0]['user_id'] == uid
+    assert response_list1[0]['checked'] == False
+    assert 'id' in response_list1[0]
+    id = response_list1[0]['id'] if safe else 'fake_id'
+
+    response2 = client.put(f"shopping-list/{id}",json={"name":"changed item", "user_id": uid, "id":id}, headers=header)
 
     # Assert
     if safe:
-        assert response1.status_code == 200
-        response_list1 = response1.json()
-        assert len(response_list1) == 1
-        assert response_list1[0]['name'] == "fake item"
-        assert response_list1[0]['user_id'] == uid
-        assert response_list1[0]['checked'] == False
-
         assert response2.status_code == 200
         response_list2 = response2.json()
         assert len(response_list2) == 1

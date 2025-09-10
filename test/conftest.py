@@ -135,6 +135,7 @@ def mock_join_code():
 @fixture
 def mock_shopping_item():
     item = MagicMock(spec=ShoppingItem)
+    item.id = "1"
     item.user_id = "1"
     item.recipe_id = "1"
     item.name = "Fake Item"
@@ -146,6 +147,7 @@ def mock_shopping_item():
 def mock_shopping_item_dict():
     return {
         "name": "fake shopping item",
+        "id": "1",
         "checked": False,
         "time_checked": datetime(2000,1,1),
         "user_id": "",

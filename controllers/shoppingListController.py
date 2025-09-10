@@ -43,6 +43,7 @@ class ShoppingListController:
                 recipe_title = ""
             out_list.append(ShoppingItemOut(
                 name = item.name, 
+                id = item.id,
                 checked=item.checked, 
                 time_checked=item.time_checked,
                 user_id = item.user_id,
@@ -74,11 +75,11 @@ class ShoppingListController:
     def add_items(self, household_id, shopping_items: list[ShoppingItem]) -> None:
         self.repo.add_items(household_id, shopping_items)
 
-    def check_item(self, household_id : str, index: int) -> None:
-        self.repo.check_item(household_id, index)
+    def check_item(self, household_id : str, id: str) -> None:
+        self.repo.check_item(household_id, id)
 
-    def edit_item(self, household_id: str, index: int, shopping_item: ShoppingItem) -> None:
-        self.repo.update_item(household_id, index, shopping_item)
+    def edit_item(self, household_id: str, id: str, shopping_item: ShoppingItem) -> None:
+        self.repo.update_item(household_id, id, shopping_item)
 
     def remove_item(self, household_id: str, index: int) -> None:
         self.repo.remove_item(household_id, index)

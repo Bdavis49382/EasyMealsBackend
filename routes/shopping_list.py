@@ -22,14 +22,14 @@ async def add_item(req: Request, shopping_item: ShoppingItem,controller: Annotat
     controller.add_item(req.state.household_id, shopping_item)
     return controller.get_shopping_list(req.state.household_id)
 
-@router.post("/check/{index}")
-async def check_item(req: Request, index: int,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
-    controller.check_item(req.state.household_id, index)
+@router.post("/check/{id}")
+async def check_item(req: Request, id: str,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.check_item(req.state.household_id, id)
     return controller.get_shopping_list(req.state.household_id)
 
-@router.put("/{index}")
-async def edit_item(req: Request, index: int, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
-    controller.edit_item(req.state.household_id, index, shopping_item)
+@router.put("/{id}")
+async def edit_item(req: Request, id: str, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+    controller.edit_item(req.state.household_id, id, shopping_item)
     return controller.get_shopping_list(req.state.household_id)
 
 @router.delete("/{index}")
