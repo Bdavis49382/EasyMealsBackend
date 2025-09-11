@@ -223,6 +223,49 @@ def test_uncheck_item_with_others(repo, mock_snapshot, mock_document, mock_house
     assert mock_document.update.call_args[0][0]['shopping_list'][1]['checked'] == True
     assert mock_document.update.call_args[0][0]['shopping_list'][1]['name'] == 'other'
 
+def test_reorder_items(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict, mock_shopping_item):
+    # Arrange
+    other = deepcopy(mock_shopping_item_dict)
+    other['name'] = 'other'
+    other['id'] = '0'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    other_item = deepcopy(mock_shopping_item)
+    other_item.id = '0'
+
+    # Act
+    repo.reorder_items("1", [mock_shopping_item, other_item])
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['id'] == '1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['id'] =='0'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['name'] == 'other'
+
+def test_reorder_items_extra(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict, mock_shopping_item):
+    # Arrange
+    other = deepcopy(mock_shopping_item_dict)
+    other['name'] = 'other'
+    other['id'] = '0'
+    other2 = deepcopy(mock_shopping_item_dict)
+    other2['name'] = 'other2'
+    other2['id'] = '-1'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict, other2]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    other_item = deepcopy(mock_shopping_item)
+    other_item.id = '0'
+
+    # Act
+    repo.reorder_items("1", [mock_shopping_item, other_item])
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['id'] == '-1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['name'] == 'other2'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['id'] == '1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][2]['id'] =='0'
+    assert mock_document.update.call_args[0][0]['shopping_list'][2]['name'] == 'other'
+
 def test_update_item(repo, mock_snapshot, mock_shopping_item, mock_document, mock_household_dict, mock_shopping_item_dict):
     # Arrange
     mock_household_dict['shopping_list'] = [mock_shopping_item_dict]

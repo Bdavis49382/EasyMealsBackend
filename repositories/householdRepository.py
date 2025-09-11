@@ -155,6 +155,30 @@ class HouseholdRepository:
         ref.update({
             "shopping_list": shopping_list
         })
+    
+    def reorder_items(self, household_id: str, ordered_list: list[ShoppingItem]) -> None:
+        ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+        shopping_items: dict = {}
+        out_list = []
+
+        # put the content from the stored shopping list in the order of the ordered list
+        for item in shopping_list:
+            shopping_items[item["id"]] = item
+
+        for item in ordered_list:
+            if item.id in shopping_items:
+                out_list.append(shopping_items[item.id])
+                del shopping_items[item.id]
+        
+        for item in shopping_items:
+            out_list.insert(0,shopping_items[item])
+        
+        
+        ref.update({
+            "shopping_list": out_list
+        })
+
 
     def remove_item(self, household_id: str, index: int) -> None:
         ref = self.household_ref.document(household_id)
