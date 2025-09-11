@@ -43,6 +43,6 @@ async def move_item(req: Request, from_index: str, to_index:str,controller: Anno
     return controller.get_shopping_list(req.state.household_id)
 
 @router.patch("/reorder")
-async def move_item(req: Request, ordered_list: list[ShoppingItem],controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
+async def reorder(req: Request, ordered_list: list[ShoppingItem],controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
     controller.reorder_items(req.state.household_id, ordered_list)
     return controller.get_shopping_list(req.state.household_id)

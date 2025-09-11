@@ -231,6 +231,7 @@ def test_reorder_items(repo, mock_snapshot, mock_document, mock_household_dict, 
     mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
     other_item = deepcopy(mock_shopping_item)
+    other_item.checked = False
     other_item.id = '0'
 
     # Act
@@ -254,6 +255,7 @@ def test_reorder_items_extra(repo, mock_snapshot, mock_document, mock_household_
     mock_snapshot.to_dict.return_value = mock_household_dict
     other_item = deepcopy(mock_shopping_item)
     other_item.id = '0'
+    other_item.checked = False
 
     # Act
     repo.reorder_items("1", [mock_shopping_item, other_item])
@@ -270,15 +272,13 @@ def test_update_item(repo, mock_snapshot, mock_shopping_item, mock_document, moc
     # Arrange
     mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
-    mock_shopping_item.model_dump.return_value = "fake"
 
     # Act
     repo.update_item("1", "1", mock_shopping_item)
 
     # Assert
     mock_document.update.assert_called_once()
-    mock_shopping_item.model_dump.assert_called_once()
-    assert mock_document.update.call_args[0][0]['shopping_list'][0] == "fake"
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]["name"] == "Fake Item"
 
 def test_remove_item(repo, mock_snapshot, mock_shopping_item, mock_document, mock_household_dict, mock_shopping_item_dict):
     # Arrange

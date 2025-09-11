@@ -142,7 +142,7 @@ class HouseholdRepository:
             raise HTTPException(status_code=400,detail="The updated item did not exist")
 
 
-        shopping_list[index] = item.model_dump()
+        shopping_list[index]['name'] = item.name
         ref.update({
             "shopping_list": shopping_list
         })
@@ -167,13 +167,15 @@ class HouseholdRepository:
             shopping_items[item["id"]] = item
 
         for item in ordered_list:
-            if item.id in shopping_items:
+            if item.id in shopping_items and shopping_items[item.id]['checked'] == item.checked:
                 out_list.append(shopping_items[item.id])
                 del shopping_items[item.id]
         
-        for item in shopping_items:
-            out_list.insert(0,shopping_items[item])
-        
+        for item in shopping_items.values():
+            if item['checked']:
+                out_list.append(item)
+            else:
+                out_list.insert(0,item)
         
         ref.update({
             "shopping_list": out_list
