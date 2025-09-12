@@ -1,6 +1,7 @@
 from pytest import mark, fixture, raises
 from repositories.householdRepository import HouseholdRepository
 from models.Household import Household
+from copy import deepcopy
 
 @fixture
 def repo(mock_collection):
@@ -80,16 +81,19 @@ def test_update_code(repo, mock_document, mock_join_code):
     mock_document.update.assert_called_once()
     assert "1" in mock_document.update.call_args[0][0]['join_code']['code']
 
-def test_add_items(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item):
+def test_add_items(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item, mock_shopping_item_dict):
     # Arrange
     mock_snapshot.to_dict.return_value = mock_household_dict
     mock_shopping_item.model_dump.return_value = "fake shopping item"
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
     repo.add_items("1",[mock_shopping_item])
 
     # Assert
     mock_document.update.assert_called_once()
+    # Check that the items added go before pre-existing items
     assert "fake shopping item" == mock_document.update.call_args[0][0]['shopping_list'][0]
 
 def test_remove_items_none_to_remove(repo, mock_document, mock_snapshot, mock_household_dict, mock_shopping_item_dict):
@@ -115,14 +119,19 @@ def test_remove_items(repo, mock_document, mock_snapshot, mock_household_dict, m
     mock_document.update.assert_called_once()
     assert mock_document.update.call_args[0][0]['shopping_list'] == []
 
-def test_add_item(repo, mock_document, mock_shopping_item):
+def test_add_item(repo, mock_document, mock_shopping_item, mock_household_dict, mock_snapshot, mock_shopping_item_dict):
     # Arrange
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    mock_shopping_item.model_dump.return_value = {"name":"new fake"}
 
     # Act
     repo.add_item("1",mock_shopping_item)
 
     # Assert
     mock_document.update.assert_called_once()
+    # Should have added to the front of the list
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['name'] == "new fake"
 
 def test_get_household(repo, mock_snapshot, mock_household_dict):
     # Arrange
@@ -145,32 +154,131 @@ def test_get_shopping_list(repo, mock_snapshot, mock_household_dict, mock_shoppi
     # Assert
     assert shopping_list[0].model_dump() == mock_shopping_item_dict
 
-def test_check_item(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict):
+def test_check_item_no_others(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict):
     # Arrange
     mock_shopping_item_dict['checked'] = False
-    mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict, deepcopy(mock_shopping_item_dict)]
     mock_snapshot.to_dict.return_value = mock_household_dict
 
     # Act
-    repo.check_item("1", 0)
+    repo.check_item("1", '1')
 
     # Assert
     mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['checked'] == False
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['checked'] == True
+
+def test_check_item_with_others(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict):
+    # Arrange
+    mock_shopping_item_dict['checked'] = False
+    other = deepcopy(mock_shopping_item_dict)
+    other['checked'] = True
+    other['name'] = "other"
+    other['id'] = '0'
+    mock_household_dict['shopping_list'] = [mock_shopping_item_dict, other]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+
+    # Act
+    repo.check_item("1", '1')
+
+    # Assert
+    mock_document.update.assert_called_once()
+    # Went to the top of the checked items
     assert mock_document.update.call_args[0][0]['shopping_list'][0]['checked'] == True
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['checked'] == True
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['name'] == 'other'
+
+def test_uncheck_item_no_others(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict):
+    # Arrange
+    mock_shopping_item_dict['checked'] = True
+    other = deepcopy(mock_shopping_item_dict)
+    other['checked'] = False
+    other['id'] = '0'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+
+    # Act
+    repo.check_item("1", '1')
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['checked'] == False
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['checked'] == False
+
+def test_uncheck_item_with_others(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict):
+    # Arrange
+    mock_shopping_item_dict['checked'] = True
+    other = deepcopy(mock_shopping_item_dict)
+    other['name'] = 'other'
+    other['id'] = '0'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+
+    # Act
+    repo.check_item("1", "1")
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['checked'] == False
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['checked'] == True
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['name'] == 'other'
+
+def test_reorder_items(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict, mock_shopping_item):
+    # Arrange
+    other = deepcopy(mock_shopping_item_dict)
+    other['name'] = 'other'
+    other['id'] = '0'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    other_item = deepcopy(mock_shopping_item)
+    other_item.checked = False
+    other_item.id = '0'
+
+    # Act
+    repo.reorder_items("1", [mock_shopping_item, other_item])
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['id'] == '1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['id'] =='0'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['name'] == 'other'
+
+def test_reorder_items_extra(repo, mock_snapshot, mock_document, mock_household_dict, mock_shopping_item_dict, mock_shopping_item):
+    # Arrange
+    other = deepcopy(mock_shopping_item_dict)
+    other['name'] = 'other'
+    other['id'] = '0'
+    other2 = deepcopy(mock_shopping_item_dict)
+    other2['name'] = 'other2'
+    other2['id'] = '-1'
+    mock_household_dict['shopping_list'] = [other, mock_shopping_item_dict, other2]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    other_item = deepcopy(mock_shopping_item)
+    other_item.id = '0'
+    other_item.checked = False
+
+    # Act
+    repo.reorder_items("1", [mock_shopping_item, other_item])
+
+    # Assert
+    mock_document.update.assert_called_once()
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['id'] == '-1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]['name'] == 'other2'
+    assert mock_document.update.call_args[0][0]['shopping_list'][1]['id'] == '1'
+    assert mock_document.update.call_args[0][0]['shopping_list'][2]['id'] =='0'
+    assert mock_document.update.call_args[0][0]['shopping_list'][2]['name'] == 'other'
 
 def test_update_item(repo, mock_snapshot, mock_shopping_item, mock_document, mock_household_dict, mock_shopping_item_dict):
     # Arrange
     mock_household_dict['shopping_list'] = [mock_shopping_item_dict]
     mock_snapshot.to_dict.return_value = mock_household_dict
-    mock_shopping_item.model_dump.return_value = "fake"
 
     # Act
-    repo.update_item("1", 0, mock_shopping_item)
+    repo.update_item("1", "1", mock_shopping_item)
 
     # Assert
     mock_document.update.assert_called_once()
-    mock_shopping_item.model_dump.assert_called_once()
-    assert mock_document.update.call_args[0][0]['shopping_list'][0] == "fake"
+    assert mock_document.update.call_args[0][0]['shopping_list'][0]["name"] == "Fake Item"
 
 def test_remove_item(repo, mock_snapshot, mock_shopping_item, mock_document, mock_household_dict, mock_shopping_item_dict):
     # Arrange

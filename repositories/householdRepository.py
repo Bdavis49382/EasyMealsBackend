@@ -3,9 +3,10 @@ from models.Recipe import Recipe, RecipeOut, MenuItem
 from models.ShoppingItem import ShoppingItem
 from models.Household import Household, JoinCode
 from firebase import household_ref
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from typing import Annotated
 from datetime import datetime, timezone
+from uuid import uuid4
 from google.cloud.firestore_v1.collection import CollectionReference
 from google.cloud.firestore_v1 import ArrayUnion, ArrayRemove, FieldFilter, Or
 
@@ -70,14 +71,23 @@ class HouseholdRepository:
 
     def add_items(self, household_id: str, items: list[ShoppingItem]) -> None:
         ref = self.household_ref.document(household_id)
-        shopping_list = ref.get().to_dict()['shopping_list']
-        shopping_list.extend(x.model_dump() for x in items)
+        shopping_list: list = ref.get().to_dict()['shopping_list']
+        for item in items:
+            if item.id == None:
+                item.id = uuid4().__str__()
+            shopping_list.insert(0, item.model_dump())
         ref.update({"shopping_list": shopping_list})
     
     def add_item(self, household_id: str, item: ShoppingItem) -> None:
         ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+
+        if item.id == None:
+            item.id = uuid4().__str__()
+
+        shopping_list.insert(0, item.model_dump())
         ref.update({
-            "shopping_list": ArrayUnion([item.model_dump()])
+            "shopping_list": shopping_list
         })
     
     def get_household(self, household_id: str) -> Household:
@@ -87,9 +97,15 @@ class HouseholdRepository:
         household = self.get_household(household_id)
         return household.shopping_list
     
-    def check_item(self, household_id: str, index: int) -> None:
+    def check_item(self, household_id: str, id: str) -> None:
         ref = self.household_ref.document(household_id)
-        shopping_list = ref.get().to_dict()["shopping_list"]
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+
+        try:
+            index = [x["id"] for x in shopping_list].index(id)
+        except:
+            print(f'item with id {id} did not exist and so was not updated')
+            raise HTTPException(status_code=400,detail="The checked item did not exist")
 
         shopping_list[index]["checked"] = not shopping_list[index]["checked"]
 
@@ -98,20 +114,73 @@ class HouseholdRepository:
             shopping_list[index]["time_checked"] = datetime.now(timezone.utc)
         else:
             shopping_list[index]["time_checked"] = None
+        
+        # Insert the checked item at the top of the checked items, whether it is now checked or unchecked
+        checked = shopping_list.pop(index)
+        new_index = -1
+        for i,item in enumerate(shopping_list):
+            if item["checked"]:
+                new_index = i
+                break
+        if new_index == -1:
+            shopping_list.append(checked)
+        else:
+            shopping_list.insert(new_index, checked)
 
         ref.update({
             "shopping_list": shopping_list
         })
     
-    def update_item(self, household_id: str, index: int, item: ShoppingItem) -> None:
+    def update_item(self, household_id: str, id: str, item: ShoppingItem) -> None:
         ref = self.household_ref.document(household_id)
         shopping_list = ref.get().to_dict()["shopping_list"]
 
+        try:
+            index = [x["id"] for x in shopping_list].index(id)
+        except:
+            print(f'item with id {id} did not exist and so was not updated')
+            raise HTTPException(status_code=400,detail="The updated item did not exist")
 
-        shopping_list[index] = item.model_dump()
+
+        shopping_list[index]['name'] = item.name
         ref.update({
             "shopping_list": shopping_list
         })
+    
+    def move_item(self, household_id: str, from_index: int, to_index: int) -> None:
+        ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+
+        shopping_list.insert(to_index,shopping_list.pop(from_index))
+        ref.update({
+            "shopping_list": shopping_list
+        })
+    
+    def reorder_items(self, household_id: str, ordered_list: list[ShoppingItem]) -> None:
+        ref = self.household_ref.document(household_id)
+        shopping_list: list = ref.get().to_dict()["shopping_list"]
+        shopping_items: dict = {}
+        out_list = []
+
+        # put the content from the stored shopping list in the order of the ordered list
+        for item in shopping_list:
+            shopping_items[item["id"]] = item
+
+        for item in ordered_list:
+            if item.id in shopping_items and shopping_items[item.id]['checked'] == item.checked:
+                out_list.append(shopping_items[item.id])
+                del shopping_items[item.id]
+        
+        for item in shopping_items.values():
+            if item['checked']:
+                out_list.append(item)
+            else:
+                out_list.insert(0,item)
+        
+        ref.update({
+            "shopping_list": out_list
+        })
+
 
     def remove_item(self, household_id: str, index: int) -> None:
         ref = self.household_ref.document(household_id)
