@@ -127,19 +127,19 @@ class FeedController:
                 score -= 500
             if len(recipe.history) > 0:
                 most_recent = max(x.timestamp for x in recipe.history)
-                waiting_time = 30
+                waiting_time = 60
                 # decide how long to wait before suggesting a recipe again based on how it was rated.
                 ratings = [x.rating for x in recipe.history if x.rating != None]
                 if len(ratings) > 0:
                     avg_rating = sum(ratings)/len(ratings)
                     if avg_rating == 5:
-                        waiting_time = 7
-                    if avg_rating >= 4:
-                        waiting_time = 14
-                    elif avg_rating >= 3:
                         waiting_time = 30
-                    else:
+                    if avg_rating >= 4:
+                        waiting_time = 45
+                    elif avg_rating >= 3:
                         waiting_time = 60
+                    else:
+                        waiting_time = 90
                     
                     if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
                         score += 3 * avg_rating
