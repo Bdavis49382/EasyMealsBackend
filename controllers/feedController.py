@@ -143,6 +143,8 @@ class FeedController:
                     
                     if datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
                         score += 3 * avg_rating * random.random()
+                    else:
+                        score -= 10
                 elif datetime.now(timezone.utc) - most_recent > timedelta(days=waiting_time):
                     score += 10
             else:
