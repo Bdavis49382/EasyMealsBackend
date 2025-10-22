@@ -50,6 +50,11 @@ async def finish_meal(request: Request, recipe_id: str, controller: Annotated[Me
     controller.finish_recipe(request.state.household_id, recipe_id, rating)
     return controller.get_menu(request.state.household_id)
 
+@router.delete('/{recipe_id}')
+async def remove_meal(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()], rating: float | None = None) -> list[MenuItemLite]:
+    controller.finish_recipe(request.state.household_id, recipe_id, rating)
+    return controller.get_menu(request.state.household_id)
+
 @router.patch("/index/{index}")
 async def patch_recipe_by_index(request: Request, index: str, updated: MenuItem, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
     controller.update_menu_item(request.state.household_id, int(index), updated)
