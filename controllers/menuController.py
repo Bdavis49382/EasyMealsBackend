@@ -81,5 +81,9 @@ class MenuController:
             raise HTTPException(status_code=404,detail="Issue occurred with finding recipe to add rating to.")
         self.user_repo.add_recipe_record(recipe.author_id, recipe_id, record)
 
+    def remove_menu_item(self, household_id: str, recipe_id: str) -> None:
+        # remove from menu
+        self.repo.remove_menu_item(household_id, recipe_id)
+
     def update_menu_item(self, household_id: str, index: int, updated: MenuItem) -> None:
         self.repo.update_menu_item(household_id, index, updated)
