@@ -60,6 +60,7 @@ def mock_user_dict(mock_recipe_dict):
     return {
     "full_name": "fake",
     "google_id": "data",
+    "suggestions": ["milk","bread"],
     "recipes": {"fake_id":mock_recipe_dict}
     }
 

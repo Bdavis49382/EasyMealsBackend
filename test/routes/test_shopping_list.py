@@ -41,6 +41,20 @@ def test_get_shopping_list(client, fake_header):
     assert list1[0]['user_id'] == list2[0]['user_id']
     assert list1[0]['name'] == list2[0]['name']
 
+def test_get_suggestions(client, fake_header):
+    # Arrange
+    app.dependency_overrides[get_user] = get_test_user
+    uid, header = fake_header
+    response = client.post("shopping-list/",json={"name":"fake item", "user_id": uid}, headers=header)
+
+    # Act
+    response2 = client.get("shopping-list/suggestions", headers=header)
+
+    # Assert
+    assert response2.status_code == 200
+    assert len(response2.json()) == 1
+    assert response2.json()[0] == "fake item"
+
 def test_add_item(client, fake_header):
     # Arrange
     uid, header = fake_header

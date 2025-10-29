@@ -10,6 +10,7 @@ class User(BaseModel):
     full_name: str
     google_id: str
     recipes: dict[str,Recipe] = {}
+    suggestions: set[str] = set()
 
     @staticmethod
     def make_user_lite( user: object) -> UserLite:

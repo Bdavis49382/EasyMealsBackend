@@ -84,4 +84,11 @@ class UserRepository:
             f"recipes.{recipe_id}.history" : ArrayUnion([record.model_dump()])
         })
 
+    def get_user_suggestions(self, user_id: str) -> set[str]:
+        user = self.get_user(user_id)
+        return user.suggestions
     
+    def add_user_suggestion(self, user_id: str, suggestion: str) -> None:
+        self.user_ref.document(user_id).update({
+            "suggestions":ArrayUnion([suggestion])
+        })

@@ -69,8 +69,12 @@ class ShoppingListController:
         self.repo.remove_items(household_id, item_is_valid)
         
 
-    def add_item(self, household_id, shopping_item: ShoppingItem) -> None:
+    def add_item(self, household_id, user_id, shopping_item: ShoppingItem) -> None:
         self.repo.add_item(household_id, shopping_item)
+        self.user_repo.add_user_suggestion(user_id, shopping_item.name)
+    
+    def get_suggestions(self, user_id) -> list[str]:
+        return list(self.user_repo.get_user_suggestions(user_id))
     
     def add_items(self, household_id, shopping_items: list[ShoppingItem]) -> None:
         self.repo.add_items(household_id, shopping_items)
