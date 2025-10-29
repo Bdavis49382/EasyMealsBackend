@@ -240,4 +240,16 @@ class HouseholdRepository:
                 "menu_recipes" : menu_items_raw
             })
 
+    def update_menu_item_by_recipe_id(self, household_id: str, recipe_id: str, updated: MenuItem) -> None:
+        ref = self.household_ref.document(household_id)
+        menu_items_raw = ref.get().to_dict()['menu_recipes']
+
+        for menu_item in menu_items_raw:
+            if menu_item['recipe_id'] == recipe_id:
+                menu_item['note'] = updated.note
+                menu_item['date'] = updated.date
+                ref.update({
+                    "menu_recipes" : menu_items_raw
+                })
+                break
     

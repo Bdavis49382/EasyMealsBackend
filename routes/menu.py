@@ -38,6 +38,14 @@ async def get_recipe(request: Request, recipe_id: str, controller: Annotated[Men
 async def get_recipe_by_index(request: Request, index: str, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
     return controller.get_menu_item(request.state.household_id, int(index))
 
+@router.get("/recipeId/{recipe_id}")
+async def get_menu_item_by_recipe_id(request: Request, recipe_id: str, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
+
+    menu_item = controller.get_menu_item_by_recipe_id(request.state.household_id, recipe_id)
+    if menu_item == None:
+        raise HTTPException(status_code=404,detail="There is no matching menu item.")
+    return menu_item
+
 @router.get('/online')
 async def get_recipe_online(link:str, controller: Annotated[MenuController, Depends()]) -> Recipe:
     recipe = controller.get_recipe_online(link)
@@ -59,3 +67,8 @@ async def remove_meal(request: Request, recipe_id: str, controller: Annotated[Me
 async def patch_recipe_by_index(request: Request, index: str, updated: MenuItem, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
     controller.update_menu_item(request.state.household_id, int(index), updated)
     return controller.get_menu_item(request.state.household_id, int(index))
+
+@router.patch("/recipeId/{recipe_id}")
+async def patch_recipe_by_recipe_id(request: Request, recipe_id: str, updated: MenuItem, controller: Annotated[MenuController, Depends()]) -> MenuItemOut:
+    controller.update_menu_item_by_recipe_id(request.state.household_id, recipe_id, updated)
+    return controller.get_menu_item_by_recipe_id(request.state.household_id, recipe_id)

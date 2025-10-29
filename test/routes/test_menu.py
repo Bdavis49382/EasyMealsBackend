@@ -128,6 +128,30 @@ def test_get_recipe_by_index(client, fake_header, mock_menu_item_dict, mock_reci
     assert menu_item['recipe']['img_link'] == mock_recipe_dict['img_link']
     assert menu_item['recipe']['title'] == mock_recipe_dict['title']
 
+def test_get_menu_item_by_recipe_id(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
+    # Arrange
+    uid, header = fake_header
+    mock_menu_item_dict["recipe_id"] = None
+
+    # Act
+    response1 = client.post(f"menu/", headers=header, json=mock_menu_item_dict)
+    assert response1.status_code == 200
+    menu = response1.json()
+    assert len(menu) == 1
+    assert menu[0]['recipe_id'] is not None
+    response2 = client.get(f"menu/recipeId/{menu[0]['recipe_id']}", headers=header)
+
+    # Assert
+
+    assert response2.status_code == 200
+    menu_item = response2.json()
+    assert menu_item['note'] == mock_menu_item_dict['note']
+    assert menu_item['date'] == mock_menu_item_dict['date']
+    # Check that it saved and used data from the mock_recipe
+    assert menu_item['recipe_id'] is not None
+    assert menu_item['recipe']['img_link'] == mock_recipe_dict['img_link']
+    assert menu_item['recipe']['title'] == mock_recipe_dict['title']
+
 def test_finish_meal(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
     # Arrange
     uid, header = fake_header
@@ -161,7 +185,27 @@ def test_patch_recipe_by_index(client, fake_header, mock_menu_item_dict, mock_re
     updated.note = 'new note'
     updated.date = datetime(2000,1,1)
     response2 = client.patch(f"menu/index/0", headers=header, json= json.loads(updated.model_dump_json()))
-    print(response2.json())
+    # Assert
+
+    assert response2.status_code == 200
+    menu_item = MenuItemOut.model_validate(response2.json())
+    assert menu_item.note == 'new note'
+    assert menu_item.date.date() == datetime(2000,1,1).date()
+
+def test_patch_recipe_by_recipe_id(client, fake_header, mock_menu_item_dict, mock_recipe_dict):
+    # Arrange
+    uid, header = fake_header
+    mock_menu_item_dict["recipe_id"] = None
+
+    # Act
+    response1 = client.post(f"menu/", headers=header, json=mock_menu_item_dict)
+    assert response1.status_code == 200
+    assert len(response1.json()) == 1
+
+    updated = MenuItemLite.model_validate(response1.json()[0])
+    updated.note = 'new note'
+    updated.date = datetime(2000,1,1)
+    response2 = client.patch(f"menu/recipeId/{updated.recipe_id}", headers=header, json= json.loads(updated.model_dump_json()))
     # Assert
 
     assert response2.status_code == 200

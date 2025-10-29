@@ -384,3 +384,24 @@ def test_update_menu_item_bad_index(repo, mock_document, mock_household_dict, mo
     # Assert
     mock_document.update.assert_not_called()
     assert exception.errisinstance(IndexError)
+
+@mark.parametrize('input_value,no_error',[('1',True),('wrongvalue',False)])
+def test_update_menu_item_by_recipe_id(repo, mock_document, mock_household_dict, mock_snapshot, mock_menu_item_dict, mock_menu_item, input_value, no_error):
+    # Arrange
+    mock_menu_item_dict['recipe_id'] = '1'
+    mock_household_dict['menu_recipes'] = [mock_menu_item_dict]
+    mock_snapshot.to_dict.return_value = mock_household_dict
+    mock_menu_item.recipe_id = input_value
+
+    # Act
+    repo.update_menu_item_by_recipe_id("1", input_value, mock_menu_item)
+
+    # Assert
+    if no_error:
+        mock_document.update.assert_called_once()
+        updated_items = mock_document.update.call_args[0][0]['menu_recipes']
+        assert len(updated_items) == 1
+        assert updated_items[0]['note'] == mock_menu_item.note
+        assert updated_items[0]['date'] == mock_menu_item.date
+    else:
+        mock_document.update.assert_not_called()
