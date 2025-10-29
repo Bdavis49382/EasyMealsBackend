@@ -29,6 +29,32 @@ def test_get_user(user_repo, mock_snapshot, mock_user_dict):
     # Assert
     mock_snapshot.to_dict.assert_called_once()
     assert result == User.model_validate(mock_user_dict)
+
+def test_get_user_suggestions_empty(user_repo, mock_snapshot, mock_user_dict):
+    # Arrange
+    del mock_user_dict['suggestions']
+    mock_snapshot.to_dict.return_value = mock_user_dict
+
+    # Act
+    result: set[str] = user_repo.get_user_suggestions("1")
+
+    # Assert
+    mock_snapshot.to_dict.assert_called_once()
+    assert type(result) == set
+    assert len(result) == 0
+
+def test_get_user_suggestions(user_repo, mock_snapshot, mock_user_dict):
+    # Arrange
+    mock_user_dict['suggestions'] = ["1","2"]
+    mock_snapshot.to_dict.return_value = mock_user_dict
+
+    # Act
+    result: set[str] = user_repo.get_user_suggestions("1")
+
+    # Assert
+    mock_snapshot.to_dict.assert_called_once()
+    assert type(result) == set
+    assert len(result) == len(mock_user_dict['suggestions'])
     
 def test_get_user_wrong_id(user_repo, mock_snapshot):
     # Arrange
@@ -82,6 +108,15 @@ def test_add_recipe(user_repo, mock_document, mock_recipe):
     # Assert
     mock_document.update.assert_called_once()
     mock_recipe.model_dump.assert_called_once()
+
+def test_add_user_suggestion(user_repo, mock_document):
+    # Arrange
+    
+    # Act
+    user_repo.add_user_suggestion("1", "suggestion")
+
+    # Assert
+    mock_document.update.assert_called_once()
 
 def test_update_recipe(user_repo, mock_document, mock_recipe):
     # Arrange

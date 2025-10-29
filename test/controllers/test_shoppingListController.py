@@ -48,14 +48,27 @@ def test_clean_list(shopping_list_controller, mock_household_repo, mock_househol
 
 
 
-def test_add_item(shopping_list_controller, mock_household_repo, mock_shopping_item):
+def test_add_item(shopping_list_controller, mock_household_repo, mock_user_repo, mock_shopping_item):
     # Arrange
 
     # Act
-    shopping_list_controller.add_item("1", mock_shopping_item)
+    shopping_list_controller.add_item("1", "1",mock_shopping_item)
 
     # Assert
     mock_household_repo.add_item.assert_called_once()
+    mock_user_repo.add_user_suggestion.assert_called_once()
+
+def test_get_suggestions(shopping_list_controller, mock_user_repo):
+    # Arrange
+    mock_user_repo.get_user_suggestions.return_value = ["1","2"]
+
+    # Act
+    result = shopping_list_controller.get_suggestions("1")
+
+    # Assert
+    mock_user_repo.get_user_suggestions.assert_called_once()
+    assert type(result) == list
+    assert len(result) == 2
 
 def test_add_items(shopping_list_controller, mock_household_repo, mock_shopping_item):
     # Arrange

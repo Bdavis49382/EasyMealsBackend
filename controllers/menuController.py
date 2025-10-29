@@ -47,6 +47,17 @@ class MenuController:
         recipe = self.get_recipe(household_id, menu_item.recipe_id)
         menu_item.recipe = recipe
         return menu_item
+    
+    def get_menu_item_by_recipe_id(self, household_id: str, recipe_id: str) -> MenuItemOut | None:
+        menu_items = self.repo.get_menu_items(household_id)
+        item = [x for x in menu_items if x.recipe_id == recipe_id]
+        if len(item) != 1:
+            return None
+        menu_item =  MenuItemOut.model_validate(item[0].model_dump())
+        recipe = self.get_recipe(household_id, menu_item.recipe_id)
+        menu_item.recipe = recipe
+        return menu_item
+
 
     def _get_household_recipes(self, household_id: str) -> dict[str,RecipeLite]:
         recipes = {}
@@ -87,3 +98,6 @@ class MenuController:
 
     def update_menu_item(self, household_id: str, index: int, updated: MenuItem) -> None:
         self.repo.update_menu_item(household_id, index, updated)
+
+    def update_menu_item_by_recipe_id(self, household_id: str, recipe_id: str, updated: MenuItem) -> None:
+        self.repo.update_menu_item_by_recipe_id(household_id, recipe_id, updated)

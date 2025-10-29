@@ -95,6 +95,44 @@ def test_get_menu_item_invalid_index(menu_controller,mock_household_repo):
     # Assert
     assert exception.errisinstance(IndexError)
 
+def test_get_menu_item_by_recipe_id(menu_controller,mock_household_repo, mock_menu_item, mock_recipe, mock_user_repo, mock_menu_item_dict, mock_recipe_dict):
+    # Arrange
+    mock_menu_item.recipe_id = "10"
+    mock_menu_item.model_dump.return_value = mock_menu_item_dict
+    mock_menu_item_dict['recipe_id'] = '10'
+
+    mock_household_repo.get_menu_items.return_value = [mock_menu_item]
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_recipe.id = "10"
+    mock_user_repo.get_user_recipes.return_value = {"10" : mock_recipe}
+
+    # Act
+    result = menu_controller.get_menu_item_by_recipe_id("1",'10')
+
+    # Assert
+    assert result.recipe_id == "10"
+    assert result.recipe.img_link == mock_recipe.img_link
+    assert result.recipe.title == mock_recipe.title
+    assert result.note == mock_menu_item.note
+    assert result.date == mock_menu_item.date
+
+def test_get_menu_item_by_recipe_id_wrong_id(menu_controller,mock_household_repo, mock_menu_item, mock_recipe, mock_user_repo, mock_menu_item_dict, mock_recipe_dict):
+    # Arrange
+    mock_menu_item.recipe_id = "10"
+    mock_menu_item.model_dump.return_value = mock_menu_item_dict
+    mock_menu_item_dict['recipe_id'] = '10'
+
+    mock_household_repo.get_menu_items.return_value = [mock_menu_item]
+    mock_household_repo.get_user_ids.return_value = ["1"]
+    mock_recipe.id = "10"
+    mock_user_repo.get_user_recipes.return_value = {"10" : mock_recipe}
+
+    # Act
+    result = menu_controller.get_menu_item_by_recipe_id("1",'wrong')
+
+    # Assert
+    assert result is None
+
 def test_get_household_recipes(menu_controller,mock_household_repo, mock_recipe, mock_user_repo):
     # Arrange
     mock_recipe.id = "10"
@@ -156,6 +194,13 @@ def test_update_menu_item(menu_controller, mock_household_repo, mock_menu_item):
 
     #Assert
     mock_household_repo.update_menu_item.assert_called_once()
+
+def test_update_menu_item_by_recipe_id(menu_controller, mock_household_repo, mock_menu_item):
+    #Act
+    menu_controller.update_menu_item_by_recipe_id("1", "10", mock_menu_item)
+
+    #Assert
+    mock_household_repo.update_menu_item_by_recipe_id.assert_called_once()
 
 def test_get_recipe_online(menu_controller, mock_webRecipesRepo):
     #Arrange

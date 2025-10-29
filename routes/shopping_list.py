@@ -19,8 +19,12 @@ async def get_shopping_list(req: Request, controller: Annotated[ShoppingListCont
 async def add_item(req: Request, shopping_item: ShoppingItem,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
     if shopping_item.user_id == None:
         shopping_item.user_id = req.state.user_id
-    controller.add_item(req.state.household_id, shopping_item)
+    controller.add_item(req.state.household_id, req.state.user_id, shopping_item)
     return controller.get_shopping_list(req.state.household_id)
+
+@router.get("/suggestions")
+async def get_suggestions(req: Request, controller: Annotated[ShoppingListController, Depends()]) -> list[str]:
+    return controller.get_suggestions(req.state.user_id)
 
 @router.post("/check/{id}")
 async def check_item(req: Request, id: str,controller: Annotated[ShoppingListController, Depends()]) -> list[ShoppingItemOut]:
