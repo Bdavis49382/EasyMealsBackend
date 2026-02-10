@@ -4,6 +4,7 @@ from repositories.householdRepository import HouseholdRepository
 from repositories.userRepository import UserRepository
 from controllers.menuController import MenuController
 from repositories.webRecipesRepository import RecipeData, WebRecipesRepository
+from fastapi import HTTPException
 
 @fixture
 def mock_household_repo():
@@ -30,6 +31,18 @@ def test_add_recipe(menu_controller,mock_household_repo, mock_menu_item, mock_re
 
     # Assert
     mock_household_repo.add_recipe_to_menu.assert_called_once()
+
+def test_add_recipe_already_there(menu_controller,mock_household_repo, mock_menu_item, mock_recipe):
+    # Arrange
+    mock_menu_item.recipe_id = '1'
+    mock_household_repo.get_menu_items.return_value = [mock_menu_item]
+
+    # Act
+    with raises(HTTPException) as exception:
+        menu_controller.add_recipe("1", mock_menu_item, "1")
+
+        # Assert
+        assert exception.errisinstance(HTTPException)
 
 def test_get_menu(menu_controller,mock_household_repo, mock_menu_item, mock_recipe, mock_user_repo):
     # Arrange

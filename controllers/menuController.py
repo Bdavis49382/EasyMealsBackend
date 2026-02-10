@@ -27,6 +27,10 @@ class MenuController:
             recipe_id = self.user_repo.add_recipe(user_id, menu_item.recipe)
             menu_item.recipe_id = recipe_id
             menu_item.recipe = None
+        menu_items = self.repo.get_menu_items(household_id)
+        item = [x for x in menu_items if x.recipe_id == menu_item.recipe_id]
+        if len(item) > 0:
+            raise HTTPException(status_code=409, detail="That recipe is already added to the menu.")
         self.repo.add_recipe_to_menu(household_id, menu_item)
     
     def get_menu(self, household_id: str) -> list[MenuItemLite]:
