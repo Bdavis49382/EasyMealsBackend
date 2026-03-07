@@ -1,4 +1,5 @@
-import urllib.request, urllib.parse, ssl, json
+import ssl, json, urllib.parse
+from curl_cffi import requests
 from models.Recipe import Recipe
 from bs4 import BeautifulSoup
 from pydantic_core import ValidationError
@@ -14,13 +15,8 @@ class WebRecipesRepository:
     @staticmethod
     def _get_soup(url:str) -> BeautifulSoup:
         try:
-            req = urllib.request.Request(url)
-            req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36')
-
-            handler = urllib.request.HTTPSHandler(context=ssl._create_unverified_context())
-            opener = urllib.request.build_opener(handler)
-            response = opener.open(req)
-            html_content = response.read()
+            
+            html_content = requests.get(url, impersonate="chrome").text
 
             return BeautifulSoup(html_content, 'html.parser')
         except:
